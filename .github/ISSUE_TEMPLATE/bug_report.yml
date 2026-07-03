@@ -1,0 +1,32 @@
+name: Bug report
+description: Report a reproducible AgentDesk problem.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What broke, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. npm run dev
+        2. Open ...
+        3. Click ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: OS, browser, Node version, Ollama version if relevant
+  - type: textarea
+    id: safety
+    attributes:
+      label: Safety note
+      description: Do not paste real API keys, tokens, private MCP configs, or secret trace output.

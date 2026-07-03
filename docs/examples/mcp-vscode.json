@@ -1,0 +1,11 @@
+{
+  "servers": {
+    "remote-docs": {
+      "type": "http",
+      "url": "https://example.com/mcp?token=replace-me",
+      "headers": {
+        "Authorization": "Bearer replace-me"
+      }
+    }
+  }
+}

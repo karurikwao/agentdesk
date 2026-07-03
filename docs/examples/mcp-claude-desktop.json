@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-filesystem", "./workspace"],
+      "env": {}
+    },
+    "browser": {
+      "command": "npx",
+      "args": ["@agentdesk/browser-mcp"],
+      "env": {
+        "BROWSER_PROFILE": "agentdesk"
+      }
+    }
+  }
+}

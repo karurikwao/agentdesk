@@ -1,0 +1,30 @@
+name: Feature request
+description: Suggest an AgentDesk capability.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What agent debugging workflow should this improve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What should AgentDesk do?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Visual workflow canvas
+        - Replay trace
+        - Ollama/local execution
+        - MCP import/readiness
+        - Export/schema
+        - Docs/launch
