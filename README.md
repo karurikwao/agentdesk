@@ -8,6 +8,8 @@
 
 AgentDesk gives developers a graph canvas, replayable traces, MCP config import, safe redaction, local Ollama execution, simulated OpenAI/Anthropic-style steps, and portable workflow exports. It is built for the moment when you ask: what actually happened inside this agent run?
 
+[Live demo](https://agentdesk-clf.pages.dev/) · [Cloudflare deployment](https://6a3a1ae4.agentdesk-clf.pages.dev/) · [GitHub repo](https://github.com/karurikwao/agentdesk)
+
 ![AgentDesk workflow canvas](./docs/assets/agentdesk-workflow-run.png)
 
 ## Why Star AgentDesk?
