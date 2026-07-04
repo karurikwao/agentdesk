@@ -6,7 +6,7 @@
     <title>AgentDesk - Local Visual Debugger For AI Agent Workflows</title>
     <meta
       name="description"
-      content="AgentDesk is a local visual debugger for AI agent workflows with replayable traces, failed-step replay, artifacts, graph validation, Ollama, BYOK LLM config, and MCP 2025-11-25 Runtime mode."
+      content="AgentDesk turns failed AI agent runs into clickable, replayable evidence bundles with prompts, tool calls, artifacts, costs, graph validation, and redacted exports."
     />
     <meta property="og:title" content="AgentDesk" />
     <meta property="og:description" content="Replay the failure, inspect every prompt/tool/result, and export redacted agent evidence." />
@@ -273,12 +273,12 @@
           </div>
         </nav>
         <div class="hero-copy">
-          <div class="eyebrow">Local visual debugger for AI agent workflows</div>
-          <h1>Replay the failure. Inspect every prompt, tool call, result, and artifact.</h1>
+          <div class="eyebrow">Clickable evidence bundles for failed AI agent runs</div>
+          <h1>Your agent failed. AgentDesk shows the node, prompt, tool call, artifact, and replay.</h1>
           <p>
-            AgentDesk is the debugging surface developers reach for before production orchestration:
-            click-linked traces, failed-step replay, graph validation, MCP 2025-11-25 import with live runtime
-            discovery, local Ollama, session-only BYOK model config, and redacted evidence exports.
+            Debug the run before you ship the workflow: click from trace to graph, replay the failed
+            step, inspect stdout/stderr, JSON, markdown, screenshot artifacts, and cost, then export
+            a redacted replay session for an issue, PR, or handoff.
           </p>
           <p class="safety-note">
             BYOK cloud calls are browser-direct and can be blocked by provider CORS or organization policy.
@@ -286,11 +286,11 @@
           </p>
           <div class="hero-actions">
             <a class="button" href="https://agentdesk-clf.pages.dev/">Open AgentDesk</a>
-            <a class="button secondary" href="https://github.com/karurikwao/agentdesk#quick-start">Quick Start</a>
+            <a class="button secondary" href="https://github.com/karurikwao/agentdesk/blob/main/docs/examples/failure-replay.agentdesk-session.json">Inspect Export</a>
           </div>
         </div>
         <div class="hero-shot">
-          <img src="./assets/agentdesk-start-here.png" alt="AgentDesk Start tab and workflow canvas" />
+          <img src="./assets/agentdesk-demo-loop.gif" alt="AgentDesk failure replay demo loop" />
         </div>
       </section>
 

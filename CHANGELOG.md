@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.2 - Launch conversion polish
+
+- Made Failure Replay Lab the default workflow so the live demo opens on the strongest debugging story.
+- Added a reproducible README demo GIF and wired it into the launch page hero.
+- Added an importable `failure-replay.agentdesk-session.json` proof artifact and parser coverage.
+- Added `CODE_OF_CONDUCT.md`, stronger contributor guidance, and live good-first-issue links.
+- Added NPM publish runbook and tightened package metadata, topics, and release readiness checks.
+- Updated GitHub repo metadata for homepage, description, topics, and Discussions readiness.
+
 ## 0.6.1 - MCP 2025-11-25 compatibility
 
 - Updated Runtime mode MCP negotiation to protocol version `2025-11-25`.

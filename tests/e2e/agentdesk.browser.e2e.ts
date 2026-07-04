@@ -22,6 +22,7 @@ test.afterEach(async ({ page }) => {
 
 test("runs a workflow and links trace clicks with graph node clicks", async ({ page }) => {
   await page.goto("/");
+  await selectDemo(page, "Repo QA Swarm");
 
   await page.getByRole("button", { name: "Run demo trace" }).click();
 
@@ -90,7 +91,7 @@ test("replays a failed step and inspects captured artifacts", async ({ page }) =
   }
 
   await page.reload();
-  await expect(page.getByRole("heading", { name: "Repo QA Swarm" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Failure Replay Lab" })).toBeVisible();
 
   await page.getByTestId("session-import-input").setInputFiles(replaySessionPath);
   await expect(page.getByRole("heading", { name: "Failure Replay Lab" })).toBeVisible();
@@ -185,7 +186,7 @@ test("surfaces graph validation issues from canvas edits", async ({ page }) => {
     .click();
 
   await expect(page.getByLabel("Graph validation")).toContainText(/warnings/);
-  await expect(page.getByRole("button", { name: /Model Node has no incoming edge/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Model Node has no outgoing edge/ })).toBeVisible();
 
   await page.getByRole("button", { name: /Model Node has no outgoing edge/ }).click();
   await expect(graphNode(page, "Model Node")).toHaveClass(/has-graph-issue/);

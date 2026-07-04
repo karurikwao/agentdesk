@@ -1,6 +1,8 @@
 # Good First Issues To Seed
 
-Use these as the first public GitHub issues after the `v0.6.1` release tag is pushed. They are scoped to attract contributors without opening dangerous runtime surfaces by default.
+These are the first public issue templates for `v0.6.1`. The initial set has been seeded on GitHub; keep this file as reusable copy for relabeling, reopening, or creating follow-up beginner-friendly work without opening dangerous runtime surfaces by default.
+
+Live queue: https://github.com/karurikwao/agentdesk/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22good%20first%20issue%22
 
 ## 1. Add Official MCP SDK Transport Adapter
 

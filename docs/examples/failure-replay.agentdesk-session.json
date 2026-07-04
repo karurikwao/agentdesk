@@ -1,0 +1,508 @@
+{
+  "schema": "agentdesk.replay-session.v1",
+  "appVersion": "0.6.1",
+  "exportedAt": "2026-07-04T17:20:00.000Z",
+  "workflow": {
+    "id": "failure-replay",
+    "name": "Failure Replay Lab",
+    "tagline": "Debug a failed MCP tool step without raw log archaeology",
+    "description": "Watch a browser MCP step fail, preserve the trace, and inspect the replay artifact.",
+    "nodes": [
+      {
+        "id": "intent",
+        "type": "agentNode",
+        "position": { "x": 0, "y": 120 },
+        "data": {
+          "label": "Bug Report",
+          "kind": "prompt",
+          "description": "A user reports that checkout fails after a UI change."
+        }
+      },
+      {
+        "id": "triage",
+        "type": "agentNode",
+        "position": { "x": 260, "y": 120 },
+        "data": {
+          "label": "Triage Agent",
+          "kind": "model",
+          "provider": "ollama",
+          "model": "llama3.2",
+          "description": "Build a local hypothesis before touching tools."
+        }
+      },
+      {
+        "id": "browser-fail",
+        "type": "agentNode",
+        "position": { "x": 520, "y": 35 },
+        "data": {
+          "label": "Browser Replay",
+          "kind": "tool",
+          "provider": "mcp",
+          "description": "Simulated browser MCP timeout with preserved replay context.",
+          "config": {
+            "demoFailure": true
+          }
+        }
+      },
+      {
+        "id": "artifact",
+        "type": "agentNode",
+        "position": { "x": 780, "y": 120 },
+        "data": {
+          "label": "Failure Artifact",
+          "kind": "memory",
+          "provider": "local",
+          "description": "Simulate capturing screenshot, command, stderr, and prior prompt context."
+        }
+      },
+      {
+        "id": "fix",
+        "type": "agentNode",
+        "position": { "x": 1040, "y": 120 },
+        "data": {
+          "label": "Fix Plan",
+          "kind": "output",
+          "description": "Produce a replayable failure report and next action."
+        }
+      }
+    ],
+    "edges": [
+      { "id": "e-intent-triage", "source": "intent", "target": "triage", "animated": true },
+      { "id": "e-triage-browser", "source": "triage", "target": "browser-fail", "animated": true },
+      { "id": "e-browser-artifact", "source": "browser-fail", "target": "artifact" },
+      { "id": "e-artifact-fix", "source": "artifact", "target": "fix" }
+    ]
+  },
+  "portableWorkflow": {
+    "id": "failure-replay",
+    "name": "Failure Replay Lab",
+    "description": "Watch a browser MCP step fail, preserve the trace, and inspect the replay artifact.",
+    "nodes": [
+      {
+        "id": "intent",
+        "kind": "prompt",
+        "label": "Bug Report",
+        "config": {}
+      },
+      {
+        "id": "triage",
+        "kind": "model",
+        "label": "Triage Agent",
+        "provider": "ollama",
+        "model": "llama3.2",
+        "config": {}
+      },
+      {
+        "id": "browser-fail",
+        "kind": "tool",
+        "label": "Browser Replay",
+        "provider": "mcp",
+        "config": {
+          "demoFailure": true
+        }
+      },
+      {
+        "id": "artifact",
+        "kind": "memory",
+        "label": "Failure Artifact",
+        "provider": "local",
+        "config": {}
+      },
+      {
+        "id": "fix",
+        "kind": "output",
+        "label": "Fix Plan",
+        "config": {}
+      }
+    ],
+    "edges": [
+      { "id": "e-intent-triage", "source": "intent", "target": "triage" },
+      { "id": "e-triage-browser", "source": "triage", "target": "browser-fail" },
+      { "id": "e-browser-artifact", "source": "browser-fail", "target": "artifact" },
+      { "id": "e-artifact-fix", "source": "artifact", "target": "fix" }
+    ]
+  },
+  "trace": [
+    {
+      "id": "failure-replay-intent-event-example",
+      "runId": "run-example",
+      "nodeId": "intent",
+      "nodeLabel": "Bug Report",
+      "kind": "prompt",
+      "status": "complete",
+      "startedAt": "2026-07-04T17:20:00.000Z",
+      "durationMs": 140,
+      "tokensIn": 80,
+      "tokensOut": 24,
+      "costUsd": 0,
+      "summary": "Bug Report normalized the checkout failure into success criteria and constraints.",
+      "artifacts": [
+        {
+          "id": "failure-replay-intent-notes",
+          "name": "Bug Report notes",
+          "type": "markdown",
+          "uri": "artifact://failure-replay/intent/notes.md",
+          "content": "# Bug Report\n\nCheckout started failing after a UI change. The run should identify the failing browser/MCP step and preserve evidence."
+        }
+      ],
+      "debug": {
+        "prompt": "A user reports that checkout fails after a UI change.",
+        "toolCall": "{\n  \"kind\": \"prompt\",\n  \"provider\": \"none\"\n}",
+        "result": "Failure criteria captured for replay debugging.",
+        "stdout": "Bug Report: normalized context\nBug Report: complete"
+      },
+      "inputRef": "input://failure-replay/intent",
+      "outputRef": "output://failure-replay/intent",
+      "inputPreview": "Checkout fails after a UI change.",
+      "outputPreview": "Browser replay should verify checkout and preserve failure evidence."
+    },
+    {
+      "id": "failure-replay-triage-event-example",
+      "runId": "run-example",
+      "nodeId": "triage",
+      "nodeLabel": "Triage Agent",
+      "kind": "model",
+      "status": "complete",
+      "startedAt": "2026-07-04T17:20:01.000Z",
+      "durationMs": 973,
+      "provider": "ollama",
+      "model": "llama3.2",
+      "tokensIn": 720,
+      "tokensOut": 330,
+      "costUsd": 0,
+      "summary": "Triage Agent built a local hypothesis and selected the browser replay tool.",
+      "artifacts": [
+        {
+          "id": "failure-replay-triage-json",
+          "name": "Triage Agent payload",
+          "type": "json",
+          "uri": "artifact://failure-replay/triage/payload.json",
+          "content": "{\n  \"hypothesis\": \"Checkout button is hidden or blocked after the UI change\",\n  \"nextTool\": \"Browser Replay\"\n}"
+        }
+      ],
+      "debug": {
+        "prompt": "Build a local hypothesis before touching tools.",
+        "toolCall": "{\n  \"provider\": \"ollama\",\n  \"model\": \"llama3.2\",\n  \"kind\": \"model\"\n}",
+        "result": "Use browser replay to reproduce checkout and capture artifacts.",
+        "stdout": "Triage Agent: complete"
+      },
+      "inputRef": "input://failure-replay/triage",
+      "outputRef": "output://failure-replay/triage",
+      "inputPreview": "Failure criteria and checkout context.",
+      "outputPreview": "Browser replay selected as the next debugging step."
+    },
+    {
+      "id": "failure-replay-browser-fail-event-example",
+      "runId": "run-example",
+      "nodeId": "browser-fail",
+      "nodeLabel": "Browser Replay",
+      "kind": "tool",
+      "status": "failed",
+      "startedAt": "2026-07-04T17:20:02.000Z",
+      "durationMs": 716,
+      "provider": "mcp",
+      "model": "mcp-metadata",
+      "tokensIn": 104,
+      "tokensOut": 34,
+      "costUsd": 0.0004,
+      "summary": "Browser Replay failed with a simulated MCP timeout for replay debugging.",
+      "artifact": "artifact://failure-replay/browser-fail/payload.json",
+      "artifacts": [
+        {
+          "id": "failure-replay-browser-fail-json",
+          "name": "Browser Replay payload",
+          "type": "json",
+          "uri": "artifact://failure-replay/browser-fail/payload.json",
+          "content": "{\n  \"tool\": \"browser.replay\",\n  \"status\": \"timeout\",\n  \"selector\": \"button[data-testid=checkout-submit]\"\n}"
+        },
+        {
+          "id": "failure-replay-browser-fail-markdown",
+          "name": "Browser Replay notes",
+          "type": "markdown",
+          "uri": "artifact://failure-replay/browser-fail/notes.md",
+          "content": "# Browser Replay\n\nThe MCP browser step timed out while waiting for the checkout submit button."
+        },
+        {
+          "id": "failure-replay-browser-fail-stdout",
+          "name": "Browser Replay stdout",
+          "type": "stdout",
+          "uri": "artifact://failure-replay/browser-fail/stdout.log",
+          "content": "Browser Replay: start\nBrowser Replay: opening /checkout\nBrowser Replay: waiting for checkout submit"
+        },
+        {
+          "id": "failure-replay-browser-fail-stderr",
+          "name": "Browser Replay stderr",
+          "type": "stderr",
+          "uri": "artifact://failure-replay/browser-fail/stderr.log",
+          "content": "DEMO_TOOL_TIMEOUT: browser MCP timed out waiting for button[data-testid=checkout-submit]"
+        },
+        {
+          "id": "failure-replay-browser-fail-screenshot",
+          "name": "Browser Replay screenshot",
+          "type": "screenshot",
+          "uri": "artifact://failure-replay/browser-fail/screenshot.svg",
+          "content": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 360\" role=\"img\"><title>Browser Replay timeout screenshot</title><rect width=\"640\" height=\"360\" fill=\"#eff6ff\"/><rect x=\"36\" y=\"42\" width=\"568\" height=\"276\" rx=\"8\" fill=\"#ffffff\" stroke=\"#bfdbfe\"/><rect x=\"72\" y=\"92\" width=\"210\" height=\"44\" rx=\"6\" fill=\"#dbeafe\"/><rect x=\"72\" y=\"198\" width=\"300\" height=\"22\" rx=\"4\" fill=\"#fee2e2\"/><circle cx=\"520\" cy=\"118\" r=\"34\" fill=\"#e11d48\" opacity=\"0.12\"/><path d=\"M506 118h28\" stroke=\"#e11d48\" stroke-width=\"8\" stroke-linecap=\"round\"/><text x=\"72\" y=\"258\" fill=\"#0f172a\" font-family=\"Arial\" font-size=\"22\" font-weight=\"700\">Checkout button not found</text></svg>"
+        }
+      ],
+      "debug": {
+        "prompt": "Workflow: Failure Replay Lab\nStep 3: Browser Replay\nGoal: Watch a browser MCP step fail, preserve the trace, and inspect the replay artifact.",
+        "toolCall": "{\n  \"provider\": \"mcp\",\n  \"model\": \"mcp-metadata\",\n  \"kind\": \"tool\",\n  \"action\": \"browser.replay\",\n  \"input\": {\n    \"url\": \"/checkout\",\n    \"selector\": \"button[data-testid=checkout-submit]\"\n  }\n}",
+        "result": "Browser Replay timed out in the simulated replay harness.",
+        "stdout": "Browser Replay: start\nBrowser Replay: normalized context\nBrowser Replay: failed",
+        "stderr": "DEMO_TOOL_TIMEOUT: browser MCP timed out waiting for button[data-testid=checkout-submit]"
+      },
+      "inputRef": "input://failure-replay/browser-fail",
+      "inputPreview": "Use browser MCP to replay checkout and click submit.",
+      "error": {
+        "code": "DEMO_TOOL_TIMEOUT",
+        "message": "This demo failure keeps the graph, trace, cost, stderr, screenshot, and tool payload inspectable after the failed step."
+      }
+    },
+    {
+      "id": "failure-replay-browser-fail-replay-example",
+      "runId": "replay-example",
+      "nodeId": "browser-fail",
+      "nodeLabel": "Browser Replay",
+      "kind": "tool",
+      "status": "complete",
+      "startedAt": "2026-07-04T17:20:09.000Z",
+      "durationMs": 716,
+      "provider": "mcp",
+      "model": "mcp-metadata",
+      "tokensIn": 104,
+      "tokensOut": 34,
+      "costUsd": 0.0004,
+      "summary": "Browser Replay replayed with preserved prompt, tool call, and artifact context.",
+      "artifact": "artifact://failure-replay/browser-fail/replay-result.md",
+      "artifacts": [
+        {
+          "id": "failure-replay-browser-fail-replay-markdown",
+          "name": "Replay result: Browser Replay notes",
+          "type": "markdown",
+          "uri": "artifact://failure-replay/browser-fail/replay-result.md",
+          "content": "# Replay Result\n\nThe failed MCP step was replayed with the original prompt, tool call, stderr, and screenshot attached."
+        }
+      ],
+      "debug": {
+        "prompt": "Replay Browser Replay with preserved failure context.",
+        "toolCall": "{\n  \"provider\": \"mcp\",\n  \"model\": \"mcp-metadata\",\n  \"kind\": \"tool\",\n  \"action\": \"replay_failed_step\"\n}",
+        "result": "Replay attached the original failure evidence and produced a shareable debugging note.",
+        "stdout": "Browser Replay: replay complete"
+      },
+      "replayOf": "failure-replay-browser-fail-event-example",
+      "replayAttempt": 1,
+      "inputRef": "input://failure-replay/browser-fail",
+      "outputRef": "output://failure-replay/browser-fail/replay",
+      "inputPreview": "Original failure context.",
+      "outputPreview": "Replay evidence bundle is ready to export."
+    }
+  ],
+  "traceSummary": {
+    "totalEvents": 4,
+    "failedEvents": 1,
+    "totalCostUsd": 0.0008,
+    "totalTokens": 1430,
+    "artifactCount": 8,
+    "replayEvents": 1,
+    "replayableFailedEvents": 1,
+    "costByProviderModel": [
+      {
+        "id": "mcp:mcp-metadata",
+        "provider": "mcp",
+        "model": "mcp-metadata",
+        "events": 2,
+        "tokensIn": 208,
+        "tokensOut": 68,
+        "totalTokens": 276,
+        "costUsd": 0.0008
+      },
+      {
+        "id": "ollama:llama3.2",
+        "provider": "ollama",
+        "model": "llama3.2",
+        "events": 1,
+        "tokensIn": 720,
+        "tokensOut": 330,
+        "totalTokens": 1050,
+        "costUsd": 0
+      },
+      {
+        "id": "none:n/a",
+        "provider": "none",
+        "model": "n/a",
+        "events": 1,
+        "tokensIn": 80,
+        "tokensOut": 24,
+        "totalTokens": 104,
+        "costUsd": 0
+      }
+    ]
+  },
+  "traceBundle": {
+    "manifestVersion": "agentdesk.trace-bundle.v1",
+    "files": [
+      "trace.json",
+      "workflow.json",
+      "artifacts/browser-replay-stderr.log",
+      "artifacts/browser-replay-screenshot.svg"
+    ]
+  },
+  "adapters": {
+    "langGraph": "# LangGraph starter omitted from compact example",
+    "crewAI": "# CrewAI starter omitted from compact example"
+  },
+  "artifacts": [
+    {
+      "id": "failure-replay-intent-notes",
+      "name": "Bug Report notes",
+      "type": "markdown",
+      "uri": "artifact://failure-replay/intent/notes.md",
+      "content": "# Bug Report\n\nCheckout started failing after a UI change. The run should identify the failing browser/MCP step and preserve evidence.",
+      "eventId": "failure-replay-intent-event-example",
+      "runId": "run-example",
+      "nodeId": "intent",
+      "nodeLabel": "Bug Report"
+    },
+    {
+      "id": "failure-replay-triage-json",
+      "name": "Triage Agent payload",
+      "type": "json",
+      "uri": "artifact://failure-replay/triage/payload.json",
+      "content": "{\n  \"hypothesis\": \"Checkout button is hidden or blocked after the UI change\",\n  \"nextTool\": \"Browser Replay\"\n}",
+      "eventId": "failure-replay-triage-event-example",
+      "runId": "run-example",
+      "nodeId": "triage",
+      "nodeLabel": "Triage Agent"
+    },
+    {
+      "id": "failure-replay-browser-fail-json",
+      "name": "Browser Replay payload",
+      "type": "json",
+      "uri": "artifact://failure-replay/browser-fail/payload.json",
+      "content": "{\n  \"tool\": \"browser.replay\",\n  \"status\": \"timeout\",\n  \"selector\": \"button[data-testid=checkout-submit]\"\n}",
+      "eventId": "failure-replay-browser-fail-event-example",
+      "runId": "run-example",
+      "nodeId": "browser-fail",
+      "nodeLabel": "Browser Replay"
+    },
+    {
+      "id": "failure-replay-browser-fail-markdown",
+      "name": "Browser Replay notes",
+      "type": "markdown",
+      "uri": "artifact://failure-replay/browser-fail/notes.md",
+      "content": "# Browser Replay\n\nThe MCP browser step timed out while waiting for the checkout submit button.",
+      "eventId": "failure-replay-browser-fail-event-example",
+      "runId": "run-example",
+      "nodeId": "browser-fail",
+      "nodeLabel": "Browser Replay"
+    },
+    {
+      "id": "failure-replay-browser-fail-stdout",
+      "name": "Browser Replay stdout",
+      "type": "stdout",
+      "uri": "artifact://failure-replay/browser-fail/stdout.log",
+      "content": "Browser Replay: start\nBrowser Replay: opening /checkout\nBrowser Replay: waiting for checkout submit",
+      "eventId": "failure-replay-browser-fail-event-example",
+      "runId": "run-example",
+      "nodeId": "browser-fail",
+      "nodeLabel": "Browser Replay"
+    },
+    {
+      "id": "failure-replay-browser-fail-stderr",
+      "name": "Browser Replay stderr",
+      "type": "stderr",
+      "uri": "artifact://failure-replay/browser-fail/stderr.log",
+      "content": "DEMO_TOOL_TIMEOUT: browser MCP timed out waiting for button[data-testid=checkout-submit]",
+      "eventId": "failure-replay-browser-fail-event-example",
+      "runId": "run-example",
+      "nodeId": "browser-fail",
+      "nodeLabel": "Browser Replay"
+    },
+    {
+      "id": "failure-replay-browser-fail-screenshot",
+      "name": "Browser Replay screenshot",
+      "type": "screenshot",
+      "uri": "artifact://failure-replay/browser-fail/screenshot.svg",
+      "content": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 640 360\" role=\"img\"><title>Browser Replay timeout screenshot</title><rect width=\"640\" height=\"360\" fill=\"#eff6ff\"/><rect x=\"36\" y=\"42\" width=\"568\" height=\"276\" rx=\"8\" fill=\"#ffffff\" stroke=\"#bfdbfe\"/><rect x=\"72\" y=\"92\" width=\"210\" height=\"44\" rx=\"6\" fill=\"#dbeafe\"/><rect x=\"72\" y=\"198\" width=\"300\" height=\"22\" rx=\"4\" fill=\"#fee2e2\"/><circle cx=\"520\" cy=\"118\" r=\"34\" fill=\"#e11d48\" opacity=\"0.12\"/><path d=\"M506 118h28\" stroke=\"#e11d48\" stroke-width=\"8\" stroke-linecap=\"round\"/><text x=\"72\" y=\"258\" fill=\"#0f172a\" font-family=\"Arial\" font-size=\"22\" font-weight=\"700\">Checkout button not found</text></svg>",
+      "eventId": "failure-replay-browser-fail-event-example",
+      "runId": "run-example",
+      "nodeId": "browser-fail",
+      "nodeLabel": "Browser Replay"
+    },
+    {
+      "id": "failure-replay-browser-fail-replay-markdown",
+      "name": "Replay result: Browser Replay notes",
+      "type": "markdown",
+      "uri": "artifact://failure-replay/browser-fail/replay-result.md",
+      "content": "# Replay Result\n\nThe failed MCP step was replayed with the original prompt, tool call, stderr, and screenshot attached.",
+      "eventId": "failure-replay-browser-fail-replay-example",
+      "runId": "replay-example",
+      "nodeId": "browser-fail",
+      "nodeLabel": "Browser Replay",
+      "replayOf": "failure-replay-browser-fail-event-example",
+      "replayAttempt": 1
+    }
+  ],
+  "costs": {
+    "totalCostUsd": 0.0008,
+    "totalTokens": 1430,
+    "byProviderModel": [
+      {
+        "id": "mcp:mcp-metadata",
+        "provider": "mcp",
+        "model": "mcp-metadata",
+        "events": 2,
+        "tokensIn": 208,
+        "tokensOut": 68,
+        "totalTokens": 276,
+        "costUsd": 0.0008
+      },
+      {
+        "id": "ollama:llama3.2",
+        "provider": "ollama",
+        "model": "llama3.2",
+        "events": 1,
+        "tokensIn": 720,
+        "tokensOut": 330,
+        "totalTokens": 1050,
+        "costUsd": 0
+      },
+      {
+        "id": "none:n/a",
+        "provider": "none",
+        "model": "n/a",
+        "events": 1,
+        "tokensIn": 80,
+        "tokensOut": 24,
+        "totalTokens": 104,
+        "costUsd": 0
+      }
+    ]
+  },
+  "validationIssues": [],
+  "replayAttempts": [
+    {
+      "id": "failure-replay-browser-fail-event-example:failure-replay-browser-fail-replay-example",
+      "sourceEventId": "failure-replay-browser-fail-event-example",
+      "replayEventId": "failure-replay-browser-fail-replay-example",
+      "runId": "replay-example",
+      "nodeId": "browser-fail",
+      "nodeLabel": "Browser Replay",
+      "attempt": 1,
+      "status": "complete",
+      "startedAt": "2026-07-04T17:20:09.000Z",
+      "durationMs": 716,
+      "costUsd": 0.0004,
+      "artifactIds": ["failure-replay-browser-fail-replay-markdown"]
+    }
+  ],
+  "session": {
+    "status": "complete",
+    "runMode": "demo",
+    "selectedTraceEventId": "failure-replay-browser-fail-replay-example",
+    "selectedArtifactId": "failure-replay-browser-fail-replay-markdown",
+    "inspectedNodeId": "browser-fail",
+    "activeInspectorTab": "debug"
+  },
+  "importedServers": []
+}

@@ -3,29 +3,29 @@
 ## GitHub Repo Metadata
 
 - Name: `agentdesk`
-- Description: `Local visual debugger for AI agent workflows across MCP, local runtime tools, Ollama, and session-only BYOK cloud model nodes.`
-- Topics: `ai-agents`, `mcp`, `ollama`, `developer-tools`, `react-flow`, `agent-workflows`
+- Description: `Local visual debugger for AI agent runs: replay failures, inspect prompts/tools/results, and export redacted evidence.`
+- Homepage: `https://agentdesk-clf.pages.dev/`
+- Topics: `ai-agents`, `mcp`, `ollama`, `developer-tools`, `react-flow`, `agent-workflows`, `ai-debugging`, `local-first`, `llmops`, `mcp-client`, `workflow-debugger`
 
 ## Launch Threshold
 
 - `npm run verify` passes.
 - `npm pack --dry-run` includes README, license, security notes, built app, launch docs, scripts, and screenshot assets.
-- README includes screenshot/social card, quick start, current limits, why-star positioning, and MCP safety contract.
+- README includes a failure replay GIF, quick start, current limits, why-star positioning, and MCP safety contract.
 - Browser smoke covers demo run, trace-to-node selection, failed-step replay, artifact tabs, cost breakdown, graph health, MCP import redaction, and Ollama failure handling when Ollama is unavailable.
 
 ## Demo Script
 
-1. Open AgentDesk.
-2. Pick `Failure Replay Lab`.
-3. Click `Run demo trace`.
-4. Click the failed browser step to highlight the canvas node and inspect prompt/tool/result.
+1. Open AgentDesk; it lands on `Failure Replay Lab`.
+2. Click `Run failure demo`.
+3. Click the failed Browser Replay event to highlight the canvas node.
+4. Show `Debug`, `Artifacts`, and `Costs`.
 5. Click `Replay failed step` and show the appended replay event.
-6. Open `Artifacts`, `Costs`, and `Validation`.
-7. Import `docs/examples/mcp-claude-desktop.json`.
+6. Export or import `docs/examples/failure-replay.agentdesk-session.json`.
+7. After the wow moment, import `docs/examples/mcp-claude-desktop.json`.
 8. Show readiness/risk flags and add MCP nodes.
 9. Start the packaged CLI, choose `Runtime`, and run a local command node or discover imported MCP tools.
 10. Switch to `Local Research Agent`, choose `Ollama`, and run against local Ollama if available.
-11. Export the `.agentdesk-session.json` replay session and point out `portableWorkflow`, `traceSummary`, `traceBundle`, LangGraph/CrewAI adapters, artifacts, costs, validation issues, and selected evidence.
 
 ## Known Limitations
 
@@ -39,12 +39,13 @@
 
 ## Public Launch Checklist
 
-- Keep the current README screenshot and social card, or replace the README hero with a 10-second GIF.
+- Keep the README failure replay GIF and social card current.
 - Confirm repo CI is passing on `main`.
 - Create `v0.6.1` GitHub release.
 - Verify package dry run.
 - Publish npm package only after final name decision; `agentdesk` returned npm 404/unpublished on July 4, 2026.
 - Seed five good first issues from `docs/GOOD_FIRST_ISSUES.md`.
+- Enable GitHub Discussions before broad launch.
 
 ## First 5 Issues To Seed
 

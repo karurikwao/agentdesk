@@ -2,7 +2,7 @@
 
 ## One-Liner
 
-AgentDesk is a local visual debugger for AI agent workflows: replay failed steps, inspect prompts/tool calls/results/artifacts, validate the graph, and export redacted evidence.
+AgentDesk turns failed AI agent runs into clickable, replayable evidence bundles.
 
 ## Public URLs
 
@@ -16,21 +16,23 @@ AgentDesk is a local visual debugger for AI agent workflows: replay failed steps
 | Moment | Asset |
 | --- | --- |
 | Start here + workflow canvas | `docs/assets/agentdesk-start-here.png` |
+| README failure replay GIF | `docs/assets/agentdesk-demo-loop.gif` |
 | BYOK LLM configuration | `docs/assets/agentdesk-llm-config.png` |
 | Failed-step debugger | `docs/assets/agentdesk-failure-debug.png` |
 | Artifact viewer | `docs/assets/agentdesk-artifacts.png` |
 | README hero screenshot | `docs/assets/agentdesk-workflow-run.png` |
 | Social preview card | `docs/assets/agentdesk-social-card.png` |
+| Importable replay session | `docs/examples/failure-replay.agentdesk-session.json` |
 
 ## What To Show In The First 30 Seconds
 
-1. Open AgentDesk and point to the `Start` tab.
-2. Load `Failure Replay Lab`.
-3. Click `Run demo trace`.
-4. Click the failed `Browser Replay` event and show the graph node highlight.
-5. Click `Replay failed step`.
-6. Open `Artifacts`, `Costs`, `Validation`, `Doctor`, `LLMs`, and `MCP`.
-7. Export a `.agentdesk-session.json` replay session.
+1. Open AgentDesk; it lands on `Failure Replay Lab`.
+2. Click `Run failure demo`.
+3. Click the failed `Browser Replay` event and show the graph node highlight.
+4. Open `Debug`, `Artifacts`, and `Costs` for prompt/tool/result/stderr/screenshot/cost evidence.
+5. Click `Replay failed step` and show the new replay event without erasing the original failure.
+6. Export or import `docs/examples/failure-replay.agentdesk-session.json`.
+7. After the wow moment, show `Validation`, `Doctor`, `LLMs`, and `MCP`.
 
 ## What Makes It Different
 

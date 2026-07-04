@@ -44,9 +44,10 @@ import type {
 } from "./types/workflow";
 
 const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
+const defaultWorkflowId = demoWorkflows.find((workflow) => workflow.id === "failure-replay")?.id ?? demoWorkflows[0].id;
 
 export function App() {
-  const [selectedWorkflowId, setSelectedWorkflowId] = useState(demoWorkflows[0].id);
+  const [selectedWorkflowId, setSelectedWorkflowId] = useState(defaultWorkflowId);
   const [importedWorkflow, setImportedWorkflow] = useState<AgentWorkflow | undefined>();
   const availableWorkflows = useMemo(
     () =>

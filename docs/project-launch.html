@@ -254,12 +254,11 @@
 
       <section class="hero">
         <div class="eyebrow">Project launch details</div>
-        <h1>AgentDesk is launch-ready as a debugger for AI agent workflow failures.</h1>
+        <h1>AgentDesk turns failed AI agent runs into clickable, replayable evidence bundles.</h1>
         <p>
-          AgentDesk gives developers a local surface to replay failed steps, click between traces
-          and graph nodes, inspect prompts/tool calls/results/artifacts, validate graph health,
-          import MCP 2025-11-25 configs, discover MCP tools through Runtime mode, run local command nodes,
-          run local Ollama model nodes, and configure session-only BYOK OpenAI/Anthropic model nodes.
+          The launch demo starts with a browser/MCP checkout failure, highlights the exact graph node,
+          shows the prompt/tool/result/stderr/screenshot evidence, replays only the failed step, then
+          exports a redacted session for an issue, PR, or handoff.
         </p>
       </section>
 
@@ -288,12 +287,12 @@
       <section>
         <div class="eyebrow">First 30 seconds</div>
         <ol>
-          <li>Open AgentDesk and point to the Start tab.</li>
-          <li>Load Failure Replay Lab.</li>
-          <li>Run the demo trace.</li>
+          <li>Open AgentDesk; it lands on Failure Replay Lab.</li>
+          <li>Click Run failure demo.</li>
           <li>Click the failed Browser Replay event to highlight the graph node.</li>
-          <li>Replay the failed step, then open Artifacts, Costs, Validation, Doctor, LLMs, and MCP.</li>
-          <li>Export a redacted replay session.</li>
+          <li>Show Debug, Artifacts, and Costs for the failed step.</li>
+          <li>Replay the failed step without erasing the original failure.</li>
+          <li>Export or import the replay session.</li>
         </ol>
       </section>
 
@@ -315,8 +314,8 @@
         <div class="eyebrow">Screenshots</div>
         <div class="grid">
           <figure class="card shot">
-            <img src="./assets/agentdesk-start-here.png" alt="AgentDesk Start tab and canvas" />
-            <figcaption>Start tab with launch demos and the workflow canvas.</figcaption>
+            <img src="./assets/agentdesk-demo-loop.gif" alt="AgentDesk failure replay demo loop" />
+            <figcaption>README demo loop: failure, evidence, artifacts, costs, replay, and export.</figcaption>
           </figure>
           <figure class="card shot">
             <img src="./assets/agentdesk-failure-debug.png" alt="AgentDesk failed-step debugger" />

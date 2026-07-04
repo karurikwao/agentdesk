@@ -294,7 +294,7 @@ function StartPanel({
 
         <div className="start-actions">
           <button type="button" className="secondary-button" onClick={onRunDemo}>
-            Run current workflow
+            {workflowName === "Failure Replay Lab" ? "Run failure demo" : "Run current workflow"}
           </button>
           <button type="button" className="secondary-button" onClick={onOpenTrace}>
             Open trace

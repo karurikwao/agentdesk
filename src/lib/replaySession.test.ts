@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import failureReplayExample from "../../docs/examples/failure-replay.agentdesk-session.json";
 import { demoWorkflows } from "../data/workflows";
 import type { AgentWorkflow, TraceEvent } from "../types/workflow";
 import { createTraceEvent } from "./runEngine";
@@ -13,6 +14,25 @@ import {
 } from "./replaySession";
 
 describe("replay session helpers", () => {
+  it("imports the public Failure Replay Lab example session", () => {
+    const parsed = parseReplaySession(failureReplayExample);
+
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      throw new Error(parsed.errors.join("\n"));
+    }
+
+    expect(parsed.session.workflow.id).toBe("failure-replay");
+    expect(parsed.session.trace.some((event) => event.status === "failed")).toBe(true);
+    expect(parsed.session.replayAttempts).toHaveLength(1);
+
+    const imported = parseReplaySessionImport(failureReplayExample);
+
+    expect(imported.workflow.id).toBe("failure-replay");
+    expect(imported.session.inspectedNodeId).toBe("browser-fail");
+    expect(imported.session.activeInspectorTab).toBe("debug");
+  });
+
   it("creates a full sanitized replay-session export", () => {
     const { failed, replay, trace, workflow } = createReplayFixture();
     const session = createReplaySessionExport(workflow, trace);

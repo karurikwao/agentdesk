@@ -14,7 +14,19 @@ AgentDesk answers the 10-second question: **what actually happened inside this a
 
 [Live demo](https://agentdesk-clf.pages.dev/) | [Launch page](https://karurikwao.github.io/agentdesk/) | [GitHub repo](https://github.com/karurikwao/agentdesk)
 
-![AgentDesk Start tab and workflow canvas](./docs/assets/agentdesk-start-here.png)
+![AgentDesk failure replay demo loop](./docs/assets/agentdesk-demo-loop.gif)
+
+Failed MCP step -> prompt/tool/result -> artifacts -> cost -> replay -> redacted evidence export.
+
+## See The Failure Replay In 30 Seconds
+
+1. Open the [live demo](https://agentdesk-clf.pages.dev/).
+2. Click `Run failure demo`.
+3. Click the failed `Browser Replay` trace event to highlight the graph node.
+4. Inspect the exact prompt, tool call, result, stderr, screenshot, JSON, markdown, and cost.
+5. Click `Replay failed step`, then export the `.agentdesk-session.json` evidence bundle.
+
+Want to inspect the export format directly? Open [`docs/examples/failure-replay.agentdesk-session.json`](./docs/examples/failure-replay.agentdesk-session.json).
 
 ## Why It Exists
 
@@ -35,7 +47,7 @@ Use it when you need to explain or reproduce an agent run locally. Use a workflo
 - It gives immediate value in Demo mode without accounts, keys, or hosted infrastructure.
 - It can graduate from demo evidence to live local execution through Ollama, BYOK model nodes, and loopback Runtime mode.
 - It treats safety as a product feature: explicit execution modes, local runtime boundaries, secret redaction, and exportable evidence.
-- It is small enough to understand, fork, and adapt for a team’s own agent runtime.
+- It is small enough to understand, fork, and adapt for a team's own agent runtime.
 
 ## Launch Install Paths
 
@@ -60,14 +72,6 @@ After npm publish, the intended quick path is:
 ```bash
 npx agentdesk --port 5173
 ```
-
-## 10-Second Demo
-
-1. Open the `Start` tab and click `Load lab`.
-2. Click `Run demo trace`.
-3. Click the failed event to highlight its node and inspect prompt/tool/result.
-4. Click `Replay failed step`.
-5. Open `Artifacts`, `Costs`, `Validation`, `Doctor`, and `LLMs`, then export the `.agentdesk-session.json` replay session.
 
 ## What Works Today
 
@@ -209,7 +213,9 @@ The CLI serves the built `dist` app from localhost with conservative static-serv
 ## Launch Assets
 
 - Release notes: [`docs/RELEASE_v0.6.1.md`](./docs/RELEASE_v0.6.1.md)
-- Good first issues: [`docs/GOOD_FIRST_ISSUES.md`](./docs/GOOD_FIRST_ISSUES.md)
+- Good first issues: [live issue queue](https://github.com/karurikwao/agentdesk/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22good%20first%20issue%22) and [`docs/GOOD_FIRST_ISSUES.md`](./docs/GOOD_FIRST_ISSUES.md)
+- Killer demo: [`docs/KILLER_DEMO.md`](./docs/KILLER_DEMO.md)
+- NPM publish runbook: [`docs/NPM_PUBLISH.md`](./docs/NPM_PUBLISH.md)
 - Launch details: [`docs/PROJECT_LAUNCH.md`](./docs/PROJECT_LAUNCH.md)
 - Launch plan: [`docs/LAUNCH_PLAN.md`](./docs/LAUNCH_PLAN.md)
 
