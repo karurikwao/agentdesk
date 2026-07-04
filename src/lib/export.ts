@@ -63,14 +63,10 @@ function redactString(value: string) {
 }
 
 function redactUrlsInText(value: string) {
-  return value.replace(/https?:\/\/[^\s"'<>]+/gi, (match) => redactUrlIfPossible(match));
+  return value.replace(/[a-z][a-z0-9+.-]*:\/\/[^\s"'<>]+/gi, (match) => redactUrlIfPossible(match));
 }
 
 function redactUrlIfPossible(value: string) {
-  if (!/^https?:\/\//i.test(value)) {
-    return value;
-  }
-
   try {
     const parsed = new URL(value);
     parsed.username = "";

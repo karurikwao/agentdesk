@@ -20,6 +20,7 @@ describe("workflow export", () => {
             description: "Run /Users/ada/workspace/server",
             config: {
               command: "C:\\Users\\Ada\\bin\\server.exe",
+              url: "postgres://user:pass@example.com/db?password=secret#token",
               apiKey: "sk-1234567890abcdef"
             }
           }
@@ -44,13 +45,21 @@ describe("workflow export", () => {
       }
     ];
 
-    const serialized = JSON.stringify(createWorkflowExport(workflow, trace));
+    const exportPayload = createWorkflowExport(workflow, trace);
+    const serialized = JSON.stringify(exportPayload);
 
+    expect(exportPayload).toHaveProperty("portableWorkflow");
+    expect(exportPayload).toHaveProperty("traceSummary");
+    expect(exportPayload.traceSummary).toMatchObject({
+      totalEvents: 1,
+      failedEvents: 0
+    });
     expect(serialized).toContain("${userHome}");
     expect(serialized).toContain("[REDACTED]");
     expect(serialized).not.toContain("Ada");
     expect(serialized).not.toContain("ada");
     expect(serialized).not.toContain("user:pass");
+    expect(serialized).not.toContain("password=secret");
     expect(serialized).not.toContain("secret-token");
     expect(serialized).not.toContain("sk-1234567890abcdef");
   });
