@@ -13,7 +13,14 @@
       property="og:description"
       content="Launch copy, screenshots, demo script, and known limits for the AgentDesk AI agent workflow debugger."
     />
-    <meta property="og:image" content="./assets/agentdesk-start-here.png" />
+    <meta property="og:image" content="https://karurikwao.github.io/agentdesk/assets/agentdesk-social-card.png" />
+    <meta property="og:url" content="https://karurikwao.github.io/agentdesk/project-launch.html" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="AgentDesk Launch Details" />
+    <meta name="twitter:description" content="Launch copy, screenshots, demo flow, and known limits for AgentDesk." />
+    <meta name="twitter:image" content="https://karurikwao.github.io/agentdesk/assets/agentdesk-social-card.png" />
+    <link rel="canonical" href="https://karurikwao.github.io/agentdesk/project-launch.html" />
     <style>
       :root {
         color: #0f172a;
@@ -251,7 +258,7 @@
         <p>
           AgentDesk gives developers a local surface to replay failed steps, click between traces
           and graph nodes, inspect prompts/tool calls/results/artifacts, validate graph health,
-          import MCP configs, discover MCP tools through Runtime mode, run local command nodes,
+          import MCP 2025-11-25 configs, discover MCP tools through Runtime mode, run local command nodes,
           run local Ollama model nodes, and configure session-only BYOK OpenAI/Anthropic model nodes.
         </p>
       </section>
@@ -266,6 +273,14 @@
           <div class="card">
             <h3>Repository</h3>
             <p><a href="https://github.com/karurikwao/agentdesk">github.com/karurikwao/agentdesk</a></p>
+          </div>
+          <div class="card">
+            <h3>Launch page</h3>
+            <p><a href="https://karurikwao.github.io/agentdesk/">karurikwao.github.io/agentdesk</a></p>
+          </div>
+          <div class="card">
+            <h3>Package name</h3>
+            <p><code>agentdesk</code>, available on npm as of July 4, 2026 but unpublished until final publish.</p>
           </div>
         </div>
       </section>
@@ -315,6 +330,14 @@
             <img src="./assets/agentdesk-llm-config.png" alt="AgentDesk LLM key configuration" />
             <figcaption>Session-only BYOK LLM configuration with provider/model presets.</figcaption>
           </figure>
+          <figure class="card shot">
+            <img src="./assets/agentdesk-workflow-run.png" alt="AgentDesk workflow canvas and run trace" />
+            <figcaption>Workflow canvas, trace events, costs, validation, Doctor, LLMs, and MCP in one local app.</figcaption>
+          </figure>
+          <figure class="card shot">
+            <img src="./assets/agentdesk-social-card.png" alt="AgentDesk social preview card" />
+            <figcaption>1200x630 social preview card for GitHub, Product Hunt, X, LinkedIn, and HN shares.</figcaption>
+          </figure>
         </div>
       </section>
 
@@ -322,7 +345,7 @@
         <div class="eyebrow">Launch copy</div>
         <pre>Show HN: AgentDesk, a local visual debugger for AI agent workflows
 
-I built AgentDesk because most agent workflow tools make the graph easy to draw but the failed run hard to explain. AgentDesk gives you a local graph canvas, click-linked traces, failed-step replay, prompt/tool/result inspection, artifact viewing, graph validation, MCP config import with redaction, loopback Runtime mode for local tools/MCP discovery, local Ollama model-node execution, BYOK OpenAI/Anthropic model nodes, and portable replay-session exports.
+I built AgentDesk because most agent workflow tools make the graph easy to draw but the failed run hard to explain. AgentDesk gives you a local graph canvas, click-linked traces, failed-step replay, prompt/tool/result inspection, artifact viewing, graph validation, MCP 2025-11-25 config import with redaction, local Ollama model-node execution, BYOK OpenAI/Anthropic model nodes, loopback Runtime mode for local tools/MCP discovery and tool calls, trace bundle manifests, LangGraph/CrewAI starter exports, cost summaries, and portable replay-session exports.
 
 Browser-direct cloud calls are BYOK/session-only, may be blocked by provider CORS or organization policy, and production apps should use a backend proxy. BYOK prompts and responses become trace evidence; API keys are not exported.</pre>
       </section>

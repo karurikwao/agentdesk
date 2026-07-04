@@ -5,6 +5,11 @@
 - [ ] `npm run typecheck`
 - [ ] `npm test`
 - [ ] `npm run build`
+- [ ] `npm run test:e2e`
+- [ ] `npm run smoke:package`
+- [ ] `npm run check:launch-page`
+- [ ] `npm run check:release`
+- [ ] `npm pack --dry-run --ignore-scripts --json`
 - [ ] `npm audit --audit-level=moderate`
 
 ## Safety

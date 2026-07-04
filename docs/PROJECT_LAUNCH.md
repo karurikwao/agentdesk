@@ -9,7 +9,7 @@ AgentDesk is a local visual debugger for AI agent workflows: replay failed steps
 - Live app: https://agentdesk-clf.pages.dev/
 - GitHub repo: https://github.com/karurikwao/agentdesk
 - GitHub Pages launch page: https://karurikwao.github.io/agentdesk/
-- NPM package name: `agentdesk` (unpublished until final publish decision)
+- NPM package name: `agentdesk` (available on July 4, 2026; unpublished until final publish decision)
 
 ## Screenshots
 
@@ -20,6 +20,7 @@ AgentDesk is a local visual debugger for AI agent workflows: replay failed steps
 | Failed-step debugger | `docs/assets/agentdesk-failure-debug.png` |
 | Artifact viewer | `docs/assets/agentdesk-artifacts.png` |
 | README hero screenshot | `docs/assets/agentdesk-workflow-run.png` |
+| Social preview card | `docs/assets/agentdesk-social-card.png` |
 
 ## What To Show In The First 30 Seconds
 
@@ -47,7 +48,7 @@ AgentDesk is a local visual debugger for AI agent workflows: replay failed steps
 
 Show HN: AgentDesk, a local visual debugger for AI agent workflows
 
-I built AgentDesk because most agent workflow tools make the graph easy to draw but the failed run hard to explain. AgentDesk gives you a local graph canvas, click-linked traces, failed-step replay, prompt/tool/result inspection, artifact viewing, graph validation, MCP config import with redaction, local Ollama model-node execution, BYOK OpenAI/Anthropic model nodes, loopback Runtime mode for local tools/MCP discovery, framework starter exports, and portable replay-session exports.
+I built AgentDesk because most agent workflow tools make the graph easy to draw but the failed run hard to explain. AgentDesk gives you a local graph canvas, click-linked traces, failed-step replay, prompt/tool/result inspection, artifact viewing, graph validation, MCP 2025-11-25 config import with redaction, local Ollama model-node execution, BYOK OpenAI/Anthropic model nodes, loopback Runtime mode for local tools/MCP discovery and tool calls, trace bundle manifests, LangGraph/CrewAI starter exports, cost summaries, and portable replay-session exports.
 
 It is intentionally closer to a debugger than a workflow builder. Static hosted demos do not spawn local processes; live local/MCP execution requires the packaged loopback CLI and Runtime mode. Browser-direct cloud calls are BYOK/session-only. Provider CORS, browser policy, or organization settings may block browser-direct OpenAI/Anthropic requests; production apps should use a backend proxy or hosted secret boundary. BYOK prompts and responses become trace/debug/artifact evidence, while API keys are excluded from exports.
 
@@ -55,7 +56,7 @@ It is intentionally closer to a debugger than a workflow builder. Static hosted 
 
 **Tagline:** Replay, inspect, and export AI agent workflow failures.
 
-**Description:** AgentDesk is a local visual debugger for agent workflows. Run a demo trace, click from trace to graph, inspect prompts/tool calls/results/artifacts, replay failed steps, validate the graph, import MCP configs safely, run local Ollama model nodes, run local tools/MCP discovery through loopback Runtime mode, and configure session-only BYOK OpenAI/Anthropic model nodes. Browser-direct cloud calls may be blocked by provider CORS or organization policy, and production apps should use a backend proxy.
+**Description:** AgentDesk is a local visual debugger for agent workflows. Run a demo trace, click from trace to graph, inspect prompts/tool calls/results/artifacts, replay failed steps, validate the graph, import MCP 2025-11-25 configs safely, run local Ollama model nodes, run local tools/MCP discovery and tool calls through loopback Runtime mode, export trace bundles and framework starters, and configure session-only BYOK OpenAI/Anthropic model nodes. Browser-direct cloud calls may be blocked by provider CORS or organization policy, and production apps should use a backend proxy.
 
 ## X / LinkedIn Launch Post
 
@@ -88,6 +89,7 @@ GitHub: https://github.com/karurikwao/agentdesk
 - [x] CI runs typecheck, tests, build, browser regressions, package smoke, audit, and pack dry-run.
 - [x] Cloudflare deployment is live.
 - [x] Security notes mention BYOK browser-direct caveats.
+- [x] Social preview card exists under `docs/assets`.
 
 ## Known Limits To Say Out Loud
 

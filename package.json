@@ -17,10 +17,11 @@
     "test:e2e": "npm run build && node scripts/run-e2e.mjs",
     "test:e2e:install": "playwright install chromium",
     "check:launch-page": "node scripts/check-launch-page.mjs",
+    "check:release": "node scripts/check-release-readiness.mjs",
     "screenshots:launch": "npm run build && node scripts/capture-launch-screenshots.mjs",
     "smoke:package": "node scripts/smoke-package.mjs",
     "verify:core": "npm run typecheck && npm test && npm run build",
-    "verify": "npm run verify:core && npm audit --audit-level=moderate",
+    "verify": "npm run verify:core && npm run check:launch-page && npm run check:release && npm audit --audit-level=moderate",
     "deploy:cloudflare": "npm run build && npx wrangler pages deploy dist --project-name agentdesk",
     "prepack": "npm run build",
     "prepare": "npm run build"
@@ -54,6 +55,8 @@
     "docs/project-launch.html",
     "docs/LAUNCH_PLAN.md",
     "docs/PROJECT_LAUNCH.md",
+    "docs/RELEASE_v0.6.1.md",
+    "docs/GOOD_FIRST_ISSUES.md",
     "docs/PHASE_6_LAUNCH_GATE.md",
     "docs/PHASE_5_CHECKLIST.md",
     "docs/PHASE_5_5_LAUNCH_GATE.md",
@@ -64,7 +67,7 @@
     "package.json"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=20.19.0"
   },
   "keywords": [
     "ai-agents",

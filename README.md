@@ -4,21 +4,62 @@
 
 [![CI](https://github.com/karurikwao/agentdesk/actions/workflows/ci.yml/badge.svg)](https://github.com/karurikwao/agentdesk/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-violet)](./LICENSE)
-[![Node 20+](https://img.shields.io/badge/node-20%2B-cyan)](./package.json)
+[![Node 20.19+](https://img.shields.io/badge/node-20.19%2B-cyan)](./package.json)
 
 AgentDesk answers the 10-second question: **what actually happened inside this agent run, and can I replay or share the evidence?**
 
-It gives developers a graph canvas, a first-run Start view, click-linked traces, node-level prompt/tool/result inspection, failed-step replay, artifact viewing, MCP import plus live discovery, secret/path redaction, local Ollama model-node execution, session-only BYOK OpenAI/Anthropic model execution, loopback Runtime mode for local tools/MCP, and portable workflow exports.
+- Replay a failed agent run instead of reading raw logs.
+- Click from trace event to graph node and inspect prompt/tool/result/artifacts.
+- Export a redacted replay session you can share in an issue, PR, or handoff.
 
 [Live demo](https://agentdesk-clf.pages.dev/) | [Launch page](https://karurikwao.github.io/agentdesk/) | [GitHub repo](https://github.com/karurikwao/agentdesk)
 
-![AgentDesk workflow canvas](./docs/assets/agentdesk-workflow-run.png)
+![AgentDesk Start tab and workflow canvas](./docs/assets/agentdesk-start-here.png)
 
 ## Why It Exists
 
 Most workflow builders optimize for wiring boxes together and shipping automation. AgentDesk optimizes for the debugging loop before that: replay a run, click from trace to graph, inspect the exact prompt/tool/result payloads, review artifacts and cost, check graph health, and export redacted evidence.
 
 Use it when you need to explain or reproduce an agent run locally. Use a workflow builder when you need production scheduling, hosted secrets, queues, branching operations, or live third-party tool execution.
+
+| Need | Use |
+| --- | --- |
+| Replay and explain a failed local agent run | AgentDesk |
+| Production scheduling, queues, hosted secrets, and cron jobs | Workflow builders |
+| Hosted tracing/evals across deployed applications | Observability platforms |
+| Framework-specific authoring and debugging | Framework studios |
+
+## Why Star This Repo
+
+- It is a debugger-first agent tool, not another orchestration canvas.
+- It gives immediate value in Demo mode without accounts, keys, or hosted infrastructure.
+- It can graduate from demo evidence to live local execution through Ollama, BYOK model nodes, and loopback Runtime mode.
+- It treats safety as a product feature: explicit execution modes, local runtime boundaries, secret redaction, and exportable evidence.
+- It is small enough to understand, fork, and adapt for a team’s own agent runtime.
+
+## Launch Install Paths
+
+The npm package name `agentdesk` is currently available but unpublished. Until the npm publish step happens, use the source install:
+
+```bash
+git clone https://github.com/karurikwao/agentdesk.git
+cd agentdesk
+npm install
+npm run dev
+```
+
+For the packaged local runtime:
+
+```bash
+npm run build
+node ./bin/agentdesk.mjs --port 5173
+```
+
+After npm publish, the intended quick path is:
+
+```bash
+npx agentdesk --port 5173
+```
 
 ## 10-Second Demo
 
@@ -46,9 +87,15 @@ Use it when you need to explain or reproduce an agent run locally. Use a workflo
 
 Static hosted demos do not execute local processes. Live local command and MCP execution is available only when you run the packaged CLI on loopback and switch to `Runtime` mode.
 
+## Screenshots
+
+| Failure Debugger | Artifacts | BYOK LLMs |
+| --- | --- | --- |
+| ![AgentDesk failed-step debugger](./docs/assets/agentdesk-failure-debug.png) | ![AgentDesk artifact viewer](./docs/assets/agentdesk-artifacts.png) | ![AgentDesk BYOK LLM configuration](./docs/assets/agentdesk-llm-config.png) |
+
 ## Quick Start
 
-Prerequisite: Node.js 20 or newer.
+Prerequisite: Node.js 20.19.0 or newer.
 
 ```bash
 npm install
@@ -124,6 +171,7 @@ npm run preview    # preview production build
 npm run test       # run unit tests
 npm run test:e2e:install # install Playwright Chromium
 npm run test:e2e   # build and run browser regressions
+npm run check:release # verify launch/release docs and version metadata
 npm run screenshots:launch # refresh GitHub Pages launch screenshots
 npm run smoke:package # pack, install, and serve the CLI in a clean temp project
 npm run lint       # run TypeScript checks
@@ -157,6 +205,13 @@ The CLI serves the built `dist` app from localhost with conservative static-serv
 - Persistent workspace profiles for approved MCP configs and local command adapters.
 - Zip export for the current trace bundle manifest.
 - Launch video and GIF for the README hero.
+
+## Launch Assets
+
+- Release notes: [`docs/RELEASE_v0.6.1.md`](./docs/RELEASE_v0.6.1.md)
+- Good first issues: [`docs/GOOD_FIRST_ISSUES.md`](./docs/GOOD_FIRST_ISSUES.md)
+- Launch details: [`docs/PROJECT_LAUNCH.md`](./docs/PROJECT_LAUNCH.md)
+- Launch plan: [`docs/LAUNCH_PLAN.md`](./docs/LAUNCH_PLAN.md)
 
 ## Security Notes
 

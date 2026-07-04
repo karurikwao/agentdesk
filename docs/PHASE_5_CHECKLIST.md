@@ -10,11 +10,11 @@ Phase 5 made AgentDesk feel like a debugger, not just a workflow builder. At the
 - Show provider/model cost breakdowns with event and token totals.
 - View JSON, markdown, simulated screenshot SVG, stdout, and stderr artifacts.
 - Validate graph health for cycles, duplicate IDs, missing endpoints, missing edges, unreachable outputs, and non-output dead ends.
-- Export `0.3.0` replay sessions with sanitized `traceSummary`, debug payloads, artifacts, validation issues, costs, and full trace data.
+- Historical Phase 5 export target: `0.3.0` replay sessions with sanitized `traceSummary`, debug payloads, artifacts, validation issues, costs, and full trace data. Current releases export the latest app version metadata.
 
 ## Verification
 
 - `npm run verify` passes.
-- `npm pack --dry-run --ignore-scripts --json` passes for `agentdesk@0.3.0`.
+- Historical package gate passed for `agentdesk@0.3.0`; current release gates are tracked in `docs/PHASE_6_LAUNCH_GATE.md`.
 - Browser smoke covered Failure Replay Lab, failed-step replay, Debug, Trace, Artifacts, Costs, and Validation.
 - 30/30 requested subagent verification passes were completed or addressed before release.

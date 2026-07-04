@@ -10,7 +10,7 @@
 
 - `npm run verify` passes.
 - `npm pack --dry-run` includes README, license, security notes, built app, launch docs, scripts, and screenshot assets.
-- README includes screenshot/GIF, quick start, current limits, and MCP safety contract.
+- README includes screenshot/social card, quick start, current limits, why-star positioning, and MCP safety contract.
 - Browser smoke covers demo run, trace-to-node selection, failed-step replay, artifact tabs, cost breakdown, graph health, MCP import redaction, and Ollama failure handling when Ollama is unavailable.
 
 ## Demo Script
@@ -39,12 +39,12 @@
 
 ## Public Launch Checklist
 
-- Keep the current README screenshot or replace it with a 10-second GIF.
+- Keep the current README screenshot and social card, or replace the README hero with a 10-second GIF.
 - Confirm repo CI is passing on `main`.
 - Create `v0.6.1` GitHub release.
 - Verify package dry run.
-- Publish npm package only after final name decision.
-- Seed five good first issues.
+- Publish npm package only after final name decision; `agentdesk` returned npm 404/unpublished on July 4, 2026.
+- Seed five good first issues from `docs/GOOD_FIRST_ISSUES.md`.
 
 ## First 5 Issues To Seed
 
@@ -58,7 +58,7 @@
 
 Show HN: AgentDesk, a local visual debugger for AI agent workflows
 
-I built AgentDesk to make agent workflows easier to inspect. It gives you a graph canvas, click-linked traces, failed-step replay, prompt/tool/result debugging, artifact viewing, graph health checks, MCP config import with redaction, Ollama local execution for model nodes, Cloud BYOK OpenAI/Anthropic model nodes, loopback Runtime mode for local command nodes and MCP discovery, trace bundle exports, LangGraph/CrewAI starters, cost/token summaries, and portable JSON exports. Static hosted demos do not spawn local processes; live local/MCP execution requires the packaged CLI.
+I built AgentDesk because most agent workflow tools make the graph easy to draw but the failed run hard to explain. AgentDesk gives you a local graph canvas, click-linked traces, failed-step replay, prompt/tool/result inspection, artifact viewing, graph validation, MCP 2025-11-25 config import with redaction, local Ollama model-node execution, BYOK OpenAI/Anthropic model nodes, loopback Runtime mode for local tools/MCP discovery and tool calls, trace bundle manifests, LangGraph/CrewAI starter exports, cost summaries, and portable replay-session exports. Static hosted demos do not spawn local processes; live local/MCP execution requires the packaged CLI.
 
 ## HN Reply Notes
 

@@ -19,7 +19,7 @@ Phase 5.5 is a launch-readiness pass for AgentDesk as a local visual debugger, n
 
 ## Readiness Doctor
 
-- Confirm Node.js 20 or newer is active.
+- Confirm Node.js 20.19.0 or newer is active.
 - Confirm `npm install` has completed from a clean checkout.
 - Confirm `npm run verify` passes: typecheck, tests, build, and moderate-or-higher audit.
 - Confirm `npm run build` produces a fresh `dist` app.

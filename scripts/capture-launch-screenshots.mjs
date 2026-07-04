@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { createServer } from "node:net";
 import { mkdir } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { chromium } from "@playwright/test";
 
@@ -61,6 +62,13 @@ async function captureScreenshots() {
     await page.getByRole("img", { name: "Browser Replay screenshot" }).waitFor({ timeout: 10000 });
     await page.screenshot({
       path: resolve(assetsDir, "agentdesk-artifacts.png"),
+      fullPage: false
+    });
+
+    await page.setViewportSize({ width: 1200, height: 630 });
+    await page.setContent(socialCardHtml(), { waitUntil: "load" });
+    await page.screenshot({
+      path: resolve(assetsDir, "agentdesk-social-card.png"),
       fullPage: false
     });
   } finally {
@@ -139,4 +147,138 @@ function streamText(stream) {
     stream?.on("end", () => resolveText(text));
     setTimeout(() => resolveText(text), 100);
   });
+}
+
+function socialCardHtml() {
+  const screenshotUrl = `data:image/png;base64,${readFileSync(resolve(assetsDir, "agentdesk-start-here.png")).toString("base64")}`;
+
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        display: grid;
+        width: 1200px;
+        height: 630px;
+        margin: 0;
+        overflow: hidden;
+        color: #0f172a;
+        background:
+          linear-gradient(135deg, rgba(37, 99, 235, 0.2), transparent 34%),
+          linear-gradient(315deg, rgba(14, 165, 233, 0.18), transparent 38%),
+          #eef4ff;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .card {
+        display: grid;
+        grid-template-columns: 1fr 500px;
+        gap: 34px;
+        align-items: center;
+        padding: 58px;
+      }
+
+      .copy {
+        display: grid;
+        gap: 20px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-size: 28px;
+        font-weight: 900;
+      }
+
+      .mark {
+        display: grid;
+        width: 56px;
+        height: 56px;
+        place-items: center;
+        border-radius: 8px;
+        color: #ffffff;
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+      }
+
+      h1 {
+        max-width: 590px;
+        margin: 0;
+        font-size: 66px;
+        line-height: 0.96;
+        letter-spacing: 0;
+      }
+
+      p {
+        max-width: 580px;
+        margin: 0;
+        color: #475569;
+        font-size: 25px;
+        line-height: 1.32;
+      }
+
+      .chips {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .chip {
+        padding: 10px 12px;
+        border-radius: 8px;
+        color: #1d4ed8;
+        background: #dbeafe;
+        font-size: 20px;
+        font-weight: 850;
+      }
+
+      .chip:nth-child(2) {
+        color: #6d28d9;
+        background: #ede9fe;
+      }
+
+      .chip:nth-child(3) {
+        color: #047857;
+        background: #ccfbf1;
+      }
+
+      .shot {
+        overflow: hidden;
+        border: 1px solid #dbe4f0;
+        border-radius: 8px;
+        background: #ffffff;
+        box-shadow: 0 30px 80px rgba(15, 23, 42, 0.22);
+      }
+
+      .shot img {
+        display: block;
+        width: 760px;
+        max-width: none;
+        transform: translateX(-145px);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <section class="copy">
+        <div class="brand"><span class="mark">AD</span><span>AgentDesk</span></div>
+        <h1>Replay failed AI agent runs.</h1>
+        <p>Click trace to graph, inspect prompt/tool/result artifacts, and export redacted evidence.</p>
+        <div class="chips">
+          <span class="chip">MCP 2025-11-25</span>
+          <span class="chip">Local Runtime</span>
+          <span class="chip">BYOK + Ollama</span>
+        </div>
+      </section>
+      <section class="shot">
+        <img src="${screenshotUrl}" alt="AgentDesk app screenshot" />
+      </section>
+    </div>
+  </body>
+</html>`;
 }

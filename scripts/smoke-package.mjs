@@ -127,6 +127,14 @@ try {
 
   const stdioServerPath = join(tempRoot, "mcp-stdio-smoke.mjs");
   await writeFile(stdioServerPath, createStdioMcpServerSource(), "utf8");
+  const stdioMcpConfigText = JSON.stringify({
+    mcpServers: {
+      "stdio-smoke": {
+        command: process.execPath,
+        args: [stdioServerPath]
+      }
+    }
+  });
   const stdioDiscovery = await fetch(`http://127.0.0.1:${port}/api/runtime/mcp/discover`, {
     method: "POST",
     headers: {
@@ -138,14 +146,7 @@ try {
       serverId: "stdio-smoke",
       toolName: "smoke_tool",
       toolInputJson: "{\"text\":\"stdio\"}",
-      mcpConfigText: JSON.stringify({
-        mcpServers: {
-          "stdio-smoke": {
-            command: process.execPath,
-            args: [stdioServerPath]
-          }
-        }
-      })
+      mcpConfigText: stdioMcpConfigText
     })
   });
   const stdioPayload = await stdioDiscovery.json();
@@ -158,6 +159,44 @@ try {
     stdioPayload.toolDescriptors?.[0]?.execution?.taskSupport !== "optional"
   ) {
     throw new Error(`MCP stdio discovery smoke failed: HTTP ${stdioDiscovery.status}`);
+  }
+
+  const stdioErrorExecute = await fetch(`http://127.0.0.1:${port}/api/runtime/execute-node`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-AgentDesk-Runtime": "1"
+    },
+    body: JSON.stringify({
+      approved: true,
+      workflow: {
+        id: "smoke",
+        name: "Smoke",
+        description: "Package smoke"
+      },
+      node: {
+        id: "mcp-error",
+        data: {
+          label: "MCP Error Tool",
+          kind: "tool",
+          provider: "mcp",
+          description: "Check MCP isError mapping",
+          config: {
+            mcpServerId: "stdio-smoke",
+            toolName: "error_tool",
+            toolInputJson: "{}"
+          }
+        }
+      },
+      index: 1,
+      runId: "smoke-run",
+      mcpConfigText: stdioMcpConfigText
+    })
+  });
+  const stdioErrorPayload = await stdioErrorExecute.json();
+
+  if (!stdioErrorExecute.ok || stdioErrorPayload.event?.status !== "failed") {
+    throw new Error(`MCP isError execute smoke failed: HTTP ${stdioErrorExecute.status}`);
   }
 
   const httpMcpPort = await getFreePort();
@@ -252,9 +291,13 @@ function createStdioMcpServerSource() {
     "  if (message.method === 'initialize') {",
     "    send(message.id, { protocolVersion: '2025-11-25', serverInfo: { name: 'stdio-smoke', version: '1.0.0' }, capabilities: { tools: {} } });",
     "  } else if (message.method === 'tools/list') {",
-    "    send(message.id, { tools: [{ name: 'smoke_tool', title: 'Smoke Tool', description: 'Smoke tool', inputSchema: { type: 'object' }, outputSchema: { type: 'object', properties: { ok: { type: 'boolean' } }, required: ['ok'] }, execution: { taskSupport: 'optional' } }] });",
+    "    send(message.id, { tools: [{ name: 'smoke_tool', title: 'Smoke Tool', description: 'Smoke tool', inputSchema: { type: 'object' }, outputSchema: { type: 'object', properties: { ok: { type: 'boolean' } }, required: ['ok'] }, execution: { taskSupport: 'optional' } }, { name: 'error_tool', title: 'Error Tool', description: 'Returns isError for smoke coverage', inputSchema: { type: 'object' }, execution: { taskSupport: 'optional' } }] });",
     "  } else if (message.method === 'tools/call') {",
-    "    send(message.id, { content: [{ type: 'text', text: 'stdio ok' }], structuredContent: { ok: true } });",
+    "    if (message.params && message.params.name === 'error_tool') {",
+    "      send(message.id, { content: [{ type: 'text', text: 'tool level error' }], isError: true });",
+    "    } else {",
+    "      send(message.id, { content: [{ type: 'text', text: 'stdio ok' }], structuredContent: { ok: true } });",
+    "    }",
     "  }",
     "}"
   ].join("\n");
