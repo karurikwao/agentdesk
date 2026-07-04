@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0 - Launch candidate
+
+- Added GitHub Pages launch site under `docs/index.html`.
+- Added launch detail copy, Phase 6 gate, social launch drafts, and screenshot inventory.
+- Added reproducible launch screenshot capture via `npm run screenshots:launch`.
+- Added launch screenshots for Start, BYOK LLM config, failed-step debugging, and artifacts.
+- Added GitHub Pages workflow for publishing the `docs/` launch site.
+- Refreshed public docs around Cloud BYOK, provider CORS, browser-direct security caveats, and package inclusion.
+
 ## 0.4.0 - 2026-07-04
 
 - Added first-run Start inspector tab with direct paths into the Failure Replay Lab, trace, Doctor, and LLM setup.
@@ -7,6 +16,7 @@
 - Added LLM provider/model dropdowns, editable base URL/model fields, session-only API key handling, and a key-forget action.
 - Added browser-direct OpenAI Responses and Anthropic Messages runners with prompt/result artifacts and secret-free debug payloads.
 - Preserved `cloud` run mode in replay-session imports without exporting API keys.
+- Added regression coverage for provider error redaction and replay exports excluding API keys.
 
 ## 0.3.0 - 2026-07-04
 

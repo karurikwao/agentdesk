@@ -3,13 +3,13 @@
 ## GitHub Repo Metadata
 
 - Name: `agentdesk`
-- Description: `Local visual debugger for AI agent workflows across MCP metadata, local Ollama model nodes, and simulated cloud-provider steps.`
+- Description: `Local visual debugger for AI agent workflows across MCP metadata, local Ollama model nodes, and session-only BYOK cloud model nodes.`
 - Topics: `ai-agents`, `mcp`, `ollama`, `developer-tools`, `react-flow`, `agent-workflows`
 
 ## Launch Threshold
 
 - `npm run verify` passes.
-- `npm pack --dry-run` includes README, license, security notes, built app, and screenshot asset.
+- `npm pack --dry-run` includes README, license, security notes, built app, launch docs, scripts, and screenshot assets.
 - README includes screenshot/GIF, quick start, current limits, and MCP safety contract.
 - Browser smoke covers demo run, trace-to-node selection, failed-step replay, artifact tabs, cost breakdown, graph health, MCP import redaction, and Ollama failure handling when Ollama is unavailable.
 
@@ -31,16 +31,18 @@
 - Imported MCP commands and local tool nodes are not executed.
 - Remote MCP URLs are not probed automatically.
 - Ollama live mode depends on a local Ollama runtime and browser-accessible CORS settings.
-- Cloud-provider nodes are simulated; OpenAI/Anthropic execution is not enabled yet.
+- Cloud BYOK mode executes only configured `provider: "openai"` and `provider: "anthropic"` model nodes.
+- Non-model tool, MCP, local, and unmatched cloud-provider steps remain simulated or metadata-only.
+- Provider CORS, browser policy, or organization settings may block browser-direct cloud requests.
 - There is no persistent project storage yet.
 
 ## Public Launch Checklist
 
 - Keep the current README screenshot or replace it with a 10-second GIF.
 - Confirm repo CI is passing on `main`.
-- Create `v0.3.0` GitHub release.
+- Create `v0.5.0` GitHub release.
 - Verify package dry run.
-- Reserve/publish npm package only after final name decision.
+- Publish npm package only after final name decision.
 - Seed five good first issues.
 
 ## First 5 Issues To Seed
@@ -55,7 +57,7 @@
 
 Show HN: AgentDesk, a local visual debugger for AI agent workflows
 
-I built AgentDesk to make agent workflows easier to inspect. It gives you a graph canvas, click-linked traces, failed-step replay, prompt/tool/result debugging, artifact viewing, graph health checks, MCP config import with redaction, Ollama local execution for model nodes, simulated failure traces, cost/token summaries, and portable JSON exports. Only Ollama model nodes execute live; imported MCP commands, local-tool steps, and cloud-provider nodes are metadata-only or simulated in this release.
+I built AgentDesk to make agent workflows easier to inspect. It gives you a graph canvas, click-linked traces, failed-step replay, prompt/tool/result debugging, artifact viewing, graph health checks, MCP config import with redaction, Ollama local execution for model nodes, Cloud BYOK OpenAI/Anthropic model nodes, simulated failure traces, cost/token summaries, and portable JSON exports. Only local Ollama and configured BYOK cloud model nodes execute live; imported MCP commands and local-tool steps are metadata-only or simulated in this release.
 
 ## HN Reply Notes
 

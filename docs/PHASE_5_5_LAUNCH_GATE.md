@@ -4,9 +4,9 @@ Phase 5.5 is a launch-readiness pass for AgentDesk as a local visual debugger, n
 
 ## Positioning Gate
 
-- README opens with the 10-second value prop: replay the failure, inspect every prompt/tool/result, and export clean evidence.
+- README opens with the 10-second value prop: replay the failure, inspect every prompt/tool/result, and export redacted evidence.
 - README explicitly contrasts AgentDesk with workflow builders: AgentDesk is for local debugging and evidence; workflow builders are for production automation, scheduling, queues, secrets, and live integrations.
-- Current limits stay visible: non-Ollama MCP, cloud-provider, and local-tool execution are metadata-only or simulated in this release.
+- Current limits stay visible: MCP/local-tool execution is metadata-only or simulated, and Cloud BYOK executes only configured OpenAI/Anthropic model nodes.
 
 ## Replay Session Round-Trip
 
@@ -24,7 +24,7 @@ Phase 5.5 is a launch-readiness pass for AgentDesk as a local visual debugger, n
 - Confirm `npm run verify` passes: typecheck, tests, build, and moderate-or-higher audit.
 - Confirm `npm run build` produces a fresh `dist` app.
 - Confirm the packaged CLI can serve the built app locally with `node ./bin/agentdesk.mjs --port 5173`.
-- Confirm the public screenshot asset in `docs/assets/agentdesk-workflow-run.png` still matches the README story.
+- Confirm the public screenshot assets in `docs/assets` still match the README and launch-page story.
 
 ## Privacy Pass
 
@@ -33,6 +33,8 @@ Phase 5.5 is a launch-readiness pass for AgentDesk as a local visual debugger, n
 - Confirm display and export redact secret values while preserving safe key names, readiness labels, risk flags, and inferred tool hints.
 - Confirm imported MCP commands are treated as untrusted metadata and are not executed automatically.
 - Confirm exported traces do not leak private absolute paths, bearer tokens, API keys, session tokens, or header values.
+- Confirm BYOK API keys are not written to localStorage, replay sessions, workflow exports, or debug payloads.
+- Confirm launch copy says browser-direct cloud calls may be blocked by provider CORS or organization settings and are not a production secret boundary.
 
 ## Browser Tests
 

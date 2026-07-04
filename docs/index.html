@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AgentDesk - Local Visual Debugger For AI Agent Workflows</title>
+    <meta
+      name="description"
+      content="AgentDesk is a local visual debugger for AI agent workflows with replayable traces, failed-step replay, artifacts, graph validation, Ollama, BYOK LLM config, and MCP metadata import."
+    />
+    <meta property="og:title" content="AgentDesk" />
+    <meta property="og:description" content="Replay the failure, inspect every prompt/tool/result, and export redacted agent evidence." />
+    <meta property="og:image" content="./assets/agentdesk-start-here.png" />
+    <style>
+      :root {
+        color: #0f172a;
+        background: #eef4ff;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --blue: #2563eb;
+        --blue-dark: #1d4ed8;
+        --cyan: #0ea5e9;
+        --violet: #7c3aed;
+        --teal: #14b8a6;
+        --amber: #f59e0b;
+        --coral: #f97316;
+        --ink: #0f172a;
+        --muted: #64748b;
+        --line: #dbe4f0;
+        --panel: #ffffff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        background:
+          linear-gradient(135deg, rgba(37, 99, 235, 0.14), transparent 34%),
+          linear-gradient(315deg, rgba(124, 58, 237, 0.1), transparent 40%),
+          #eef4ff;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .hero,
+      .section,
+      .footer {
+        width: min(1160px, calc(100% - 32px));
+        margin: 0 auto;
+      }
+
+      .hero {
+        display: grid;
+        gap: 28px;
+        padding: 44px 0 24px;
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 900;
+      }
+
+      .mark {
+        display: grid;
+        width: 40px;
+        height: 40px;
+        place-items: center;
+        border-radius: 8px;
+        color: #ffffff;
+        background: linear-gradient(135deg, var(--blue), var(--violet));
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0 14px;
+        border: 1px solid rgba(37, 99, 235, 0.3);
+        border-radius: 8px;
+        color: #ffffff;
+        background: var(--blue);
+        font-size: 14px;
+        font-weight: 850;
+        text-decoration: none;
+      }
+
+      .button.secondary {
+        color: var(--blue-dark);
+        background: #dbeafe;
+      }
+
+      .hero-copy {
+        display: grid;
+        gap: 16px;
+        max-width: 860px;
+      }
+
+      .eyebrow {
+        color: var(--blue-dark);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: clamp(42px, 7vw, 82px);
+        line-height: 0.95;
+        letter-spacing: 0;
+      }
+
+      h2 {
+        font-size: clamp(28px, 4vw, 46px);
+        line-height: 1;
+      }
+
+      p {
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.55;
+      }
+
+      .hero-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .hero-shot,
+      .shot-card {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: 0 24px 70px rgba(15, 23, 42, 0.14);
+      }
+
+      img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      .section {
+        display: grid;
+        gap: 18px;
+        padding: 46px 0;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .feature {
+        display: grid;
+        gap: 10px;
+        min-height: 150px;
+        padding: 18px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.86);
+      }
+
+      .feature strong {
+        font-size: 18px;
+      }
+
+      .feature span {
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .gallery {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+
+      .shot-card figcaption {
+        padding: 12px 14px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 750;
+      }
+
+      .launch-panel {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 20px;
+        align-items: center;
+        padding: 22px;
+        border: 1px solid rgba(124, 58, 237, 0.22);
+        border-radius: 8px;
+        background: #f5f3ff;
+      }
+
+      .launch-panel p {
+        font-size: 16px;
+      }
+
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        padding: 30px 0 44px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      @media (max-width: 880px) {
+        .grid,
+        .gallery,
+        .launch-panel {
+          grid-template-columns: 1fr;
+        }
+
+        .nav {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <nav class="nav" aria-label="AgentDesk links">
+          <div class="brand">
+            <div class="mark">AD</div>
+            <span>AgentDesk</span>
+          </div>
+          <div class="nav-links">
+            <a class="button secondary" href="https://github.com/karurikwao/agentdesk">GitHub</a>
+            <a class="button secondary" href="https://agentdesk-clf.pages.dev/">Live Demo</a>
+            <a class="button" href="./project-launch.html">Launch Details</a>
+          </div>
+        </nav>
+        <div class="hero-copy">
+          <div class="eyebrow">Local visual debugger for AI agent workflows</div>
+          <h1>Replay the failure. Inspect every prompt, tool call, result, and artifact.</h1>
+          <p>
+            AgentDesk is the debugging surface developers reach for before production orchestration:
+            click-linked traces, failed-step replay, graph validation, MCP metadata import, local Ollama,
+            session-only BYOK model config, and redacted evidence exports.
+          </p>
+          <p class="safety-note">
+            BYOK cloud calls are browser-direct and can be blocked by provider CORS or organization policy.
+            Prompts and responses become trace evidence; API keys are session-only and not exported.
+          </p>
+          <div class="hero-actions">
+            <a class="button" href="https://agentdesk-clf.pages.dev/">Open AgentDesk</a>
+            <a class="button secondary" href="https://github.com/karurikwao/agentdesk#quick-start">Quick Start</a>
+          </div>
+        </div>
+        <div class="hero-shot">
+          <img src="./assets/agentdesk-start-here.png" alt="AgentDesk Start tab and workflow canvas" />
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="eyebrow">What sets it apart</div>
+        <h2>A debugger, not another workflow builder.</h2>
+        <div class="grid">
+          <div class="feature">
+            <strong>Failure-first replay</strong>
+            <span>Click a failed trace event, highlight the graph node, replay that step, and keep the original evidence intact.</span>
+          </div>
+          <div class="feature">
+            <strong>Inspectable evidence</strong>
+            <span>Prompts, model/tool calls, stdout, stderr, JSON, markdown, simulated screenshots, costs, and validation stay visible.</span>
+          </div>
+          <div class="feature">
+            <strong>Local and honest</strong>
+            <span>Ollama runs locally, cloud BYOK is session-only, MCP imports are metadata-only, and simulated steps are labeled.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="eyebrow">Screenshots</div>
+        <h2>Launch-ready product tour.</h2>
+        <div class="gallery">
+          <figure class="shot-card">
+            <img src="./assets/agentdesk-failure-debug.png" alt="AgentDesk failed-step debugger" />
+            <figcaption>Failure Replay Lab with node-linked prompt, tool call, result, and stderr.</figcaption>
+          </figure>
+          <figure class="shot-card">
+            <img src="./assets/agentdesk-artifacts.png" alt="AgentDesk artifacts viewer" />
+            <figcaption>Artifact viewer for replay context, screenshots, JSON, markdown, stdout, and stderr.</figcaption>
+          </figure>
+          <figure class="shot-card">
+            <img src="./assets/agentdesk-llm-config.png" alt="AgentDesk BYOK LLM configuration panel" />
+            <figcaption>Session-only BYOK LLM config with provider/model presets and CORS/security caveats.</figcaption>
+          </figure>
+          <figure class="shot-card">
+            <img src="./assets/agentdesk-workflow-run.png" alt="AgentDesk workflow run screenshot" />
+            <figcaption>Graph canvas, trace events, costs, validation, Doctor, LLMs, and MCP import in one local app.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="launch-panel">
+          <div>
+            <div class="eyebrow">Launch package</div>
+            <h2>Everything needed for a GitHub launch.</h2>
+            <p>
+              The repo now includes this GitHub Pages landing page, launch copy, screenshot assets,
+              verification gates, CI, package smoke checks, and deployment notes.
+            </p>
+          </div>
+          <a class="button" href="./project-launch.html">Read Launch Details</a>
+        </div>
+      </section>
+    </main>
+    <footer class="footer">
+      <span>AgentDesk is MIT licensed.</span>
+      <span>Cloud-provider calls are BYOK and browser-direct; provider CORS may block them. Use a backend proxy for production secrets.</span>
+    </footer>
+  </body>
+</html>

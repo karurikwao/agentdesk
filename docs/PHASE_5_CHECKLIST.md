@@ -1,6 +1,6 @@
 # Phase 5 Checklist
 
-Phase 5 makes AgentDesk feel like a debugger, not just a workflow builder. Non-Ollama MCP, cloud-provider, and local-tool steps remain simulated or metadata-only.
+Phase 5 made AgentDesk feel like a debugger, not just a workflow builder. At the time, non-Ollama MCP, cloud-provider, and local-tool steps remained simulated or metadata-only. Current releases add Cloud BYOK model-node execution while MCP/local-tool steps remain metadata-only or simulated.
 
 ## Completed
 

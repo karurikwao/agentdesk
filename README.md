@@ -1,6 +1,6 @@
 # AgentDesk
 
-**A local visual debugger for AI agent runs: replay the failure, inspect every prompt/tool/result, and export clean evidence before you wire in live tools.**
+**A local visual debugger for AI agent runs: replay the failure, inspect every prompt/tool/result, and export redacted evidence before you wire in live tools.**
 
 [![CI](https://github.com/karurikwao/agentdesk/actions/workflows/ci.yml/badge.svg)](https://github.com/karurikwao/agentdesk/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-violet)](./LICENSE)
@@ -8,9 +8,9 @@
 
 AgentDesk answers the 10-second question: **what actually happened inside this agent run, and can I replay or share the evidence?**
 
-It gives developers a graph canvas, a first-run Start view, click-linked traces, node-level prompt/tool/result inspection, failed-step replay, artifact viewing, metadata-only MCP imports, safe redaction, local Ollama model-node execution, session-only BYOK OpenAI/Anthropic model execution, and portable workflow exports.
+It gives developers a graph canvas, a first-run Start view, click-linked traces, node-level prompt/tool/result inspection, failed-step replay, artifact viewing, metadata-only MCP imports, secret/path redaction, local Ollama model-node execution, session-only BYOK OpenAI/Anthropic model execution, and portable workflow exports.
 
-[Live demo](https://agentdesk-clf.pages.dev/) | [Cloudflare Pages](https://agentdesk-clf.pages.dev/) | [GitHub repo](https://github.com/karurikwao/agentdesk)
+[Live demo](https://agentdesk-clf.pages.dev/) | [Launch page](https://karurikwao.github.io/agentdesk/) | [GitHub repo](https://github.com/karurikwao/agentdesk)
 
 ![AgentDesk workflow canvas](./docs/assets/agentdesk-workflow-run.png)
 
@@ -22,7 +22,7 @@ Use it when you need to explain or reproduce an agent run locally. Use a workflo
 
 ## 10-Second Demo
 
-1. Pick `Failure Replay Lab`.
+1. Open the `Start` tab and click `Load lab`.
 2. Click `Run demo trace`.
 3. Click the failed event to highlight its node and inspect prompt/tool/result.
 4. Click `Replay failed step`.
@@ -61,12 +61,13 @@ The app opens on `Start`, which gives the shortest path into the Failure Replay 
 
 ### Guided Demo
 
-1. Pick `Failure Replay Lab`.
+1. Start on the `Start` tab and click `Load lab`.
 2. Click `Run demo trace`.
 3. Click the failed `Browser Replay` trace event to highlight its node and inspect prompt/tool/result.
 4. Click `Replay failed step`, then open `Artifacts` and `Costs`.
-5. Paste an example MCP config from [`docs/examples`](./docs/examples).
-6. Export the `.agentdesk-session.json` replay session and import it again to restore the evidence.
+5. Use `LLM keys` or `Doctor` from `Start` when you want setup checks.
+6. Paste an example MCP config from [`docs/examples`](./docs/examples).
+7. Export the `.agentdesk-session.json` replay session and import it again to restore the evidence.
 
 ### Optional Local Ollama Run
 
@@ -81,14 +82,15 @@ Cloud-provider model nodes remain simulated too, with trace entries marked as si
 
 ### Optional Cloud BYOK Run
 
-1. Open the `LLMs` tab.
-2. Pick `OpenAI Responses` or `Anthropic Messages`.
-3. Choose a model preset or type a custom model ID.
-4. Paste your API key, then click `Use Cloud mode`.
-5. Click `Apply to nodes` if you want matching model nodes updated to the selected model.
-6. Click `Run BYOK cloud`.
+1. Pick `Local Research Agent` for the OpenAI path (`Cloud Synthesis`) or `Repo QA Swarm` for an Anthropic planning path.
+2. Open the `LLMs` tab.
+3. Pick `OpenAI Responses` for `Local Research Agent` or `Anthropic Messages` for Anthropic model nodes.
+4. Choose a model preset or type a custom model ID.
+5. Paste your API key, then click `Use Cloud mode`.
+6. Click `Apply to nodes` if you want matching model nodes updated to the selected model.
+7. Click `Run BYOK cloud`.
 
-Only configured OpenAI/Anthropic model nodes execute in Cloud mode. API keys stay in this browser tab's React state and are not saved to localStorage, replay sessions, or workflow exports.
+Only configured OpenAI/Anthropic model nodes execute in Cloud mode. API keys stay in this browser tab's React state and are not saved to localStorage, replay sessions, workflow exports, or debug payloads. Cloud BYOK calls are browser-direct: provider CORS, browser policy, or organization settings may block direct requests, and production apps should use a backend proxy or hosted secret boundary.
 
 ## MCP Import Examples
 
@@ -106,6 +108,7 @@ npm run preview    # preview production build
 npm run test       # run unit tests
 npm run test:e2e:install # install Playwright Chromium
 npm run test:e2e   # build and run browser regressions
+npm run screenshots:launch # refresh GitHub Pages launch screenshots
 npm run smoke:package # pack, install, and serve the CLI in a clean temp project
 npm run lint       # run TypeScript checks
 npm run verify     # typecheck, test, build, audit
@@ -126,6 +129,7 @@ The CLI serves the built `dist` app from localhost with conservative static-serv
 - MCP command execution and true MCP tool discovery are intentionally not enabled yet.
 - Ollama calls happen from the browser to `127.0.0.1:11434`; CORS settings may need adjustment in some local Ollama setups.
 - Cloud BYOK calls happen directly from the browser tab; provider CORS may block some endpoints, and production apps should use a backend proxy or hosted secret boundary instead.
+- BYOK prompts and responses become trace/debug/artifact evidence, even though API keys are excluded from exports.
 - Workflow execution is still linear/topological; advanced branching and joins are schema-ready but not fully interactive.
 - Project storage is replay-session import/export only for now; there is no persistent workspace database.
 - The README uses a current screenshot; an optional short GIF can replace it in a later promo pass.
@@ -136,7 +140,7 @@ The CLI serves the built `dist` app from localhost with conservative static-serv
 - Real MCP initialize/list-tools discovery with timeout and process cleanup.
 - Shareable multi-file trace bundle with screenshots and stdout/stderr artifacts.
 - LangGraph/CrewAI export adapters.
-- Hosted docs site and launch video.
+- Launch video and GIF for the README hero.
 
 ## Security Notes
 
