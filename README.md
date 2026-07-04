@@ -2,13 +2,13 @@
 
 **A local visual debugger for AI agent workflows across MCP tools, local models, and simulated cloud-provider steps.**
 
-[![CI](https://img.shields.io/badge/ci-ready-blue)](#scripts)
+[![CI](https://github.com/karurikwao/agentdesk/actions/workflows/ci.yml/badge.svg)](https://github.com/karurikwao/agentdesk/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-violet)](./LICENSE)
 [![Node 20+](https://img.shields.io/badge/node-20%2B-cyan)](./package.json)
 
 AgentDesk gives developers a graph canvas, replayable traces, MCP config import, safe redaction, local Ollama execution, simulated OpenAI/Anthropic-style steps, and portable workflow exports. It is built for the moment when you ask: what actually happened inside this agent run?
 
-[Live demo](https://agentdesk-clf.pages.dev/) · [Cloudflare deployment](https://6a3a1ae4.agentdesk-clf.pages.dev/) · [GitHub repo](https://github.com/karurikwao/agentdesk)
+[Live demo](https://agentdesk-clf.pages.dev/) | [Cloudflare deployment](https://0a546b03.agentdesk-clf.pages.dev/) | [GitHub repo](https://github.com/karurikwao/agentdesk)
 
 ![AgentDesk workflow canvas](./docs/assets/agentdesk-workflow-run.png)
 

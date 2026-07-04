@@ -83,7 +83,7 @@ export function Sidebar({
         </div>
         <div>
           <span>Adapters</span>
-          <strong>Ollama / MCP / APIs</strong>
+          <strong>Ollama live / MCP metadata</strong>
         </div>
       </section>
     </aside>

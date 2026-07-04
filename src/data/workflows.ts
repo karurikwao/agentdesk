@@ -86,9 +86,9 @@ export const demoWorkflows: AgentWorkflow[] = [
   {
     id: "local-research",
     name: "Local Research Agent",
-    tagline: "Ollama-first analysis with optional cloud escalation",
+    tagline: "Ollama-first analysis with simulated cloud escalation",
     description:
-      "Start local, inspect documents, escalate only the final synthesis to an API model when needed.",
+      "Start local, inspect documents, and simulate a final API-model synthesis decision when needed.",
     nodes: [
       {
         id: "drop",
@@ -133,7 +133,7 @@ export const demoWorkflows: AgentWorkflow[] = [
         data: {
           label: "Escalation Router",
           kind: "router",
-          description: "Escalate only difficult steps based on confidence."
+          description: "Mark only difficult steps for simulated cloud review based on confidence."
         }
       },
       {
@@ -144,7 +144,7 @@ export const demoWorkflows: AgentWorkflow[] = [
           label: "Cloud Synthesis",
           kind: "model",
           provider: "openai",
-          description: "Optional high-quality synthesis on selected chunks."
+          description: "Simulated cloud-provider synthesis on selected chunks."
         }
       },
       {
@@ -170,9 +170,9 @@ export const demoWorkflows: AgentWorkflow[] = [
   {
     id: "mcp-router",
     name: "MCP Tool Router",
-    tagline: "Compare local tools, browser tools, and API tools in one trace",
+    tagline: "Compare MCP and API tool metadata in one simulated trace",
     description:
-      "Import MCP servers and route an agent through the right tool with cost and failure visibility.",
+      "Import MCP servers and simulate tool routing with cost and failure visibility.",
     nodes: [
       {
         id: "intent",
@@ -192,7 +192,7 @@ export const demoWorkflows: AgentWorkflow[] = [
           label: "Tool-Using Agent",
           kind: "model",
           provider: "anthropic",
-          description: "Plan the minimum tool calls required."
+          description: "Simulate the minimum tool calls required."
         }
       },
       {
@@ -214,7 +214,7 @@ export const demoWorkflows: AgentWorkflow[] = [
           label: "Browser MCP",
           kind: "tool",
           provider: "mcp",
-          description: "Verify visual and interactive states."
+          description: "Simulated browser verification metadata for visual states."
         }
       },
       {
