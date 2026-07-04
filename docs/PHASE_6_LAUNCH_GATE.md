@@ -7,7 +7,8 @@ Phase 6 makes AgentDesk publicly launchable beyond the app itself: GitHub Pages,
 - `docs/index.html` is a GitHub Pages-ready launch page.
 - `docs/project-launch.html` is a polished launch-details page for Pages visitors.
 - `docs/PROJECT_LAUNCH.md` contains launch copy, screenshots, public URLs, known limits, and launch scripts.
-- `.github/workflows/ci.yml` publishes the `docs/` folder through GitHub Pages after the verification job succeeds.
+- GitHub Pages is configured to publish the `docs/` folder from `main`.
+- `.github/workflows/ci.yml` verifies the launch-page references before package smoke and browser tests.
 - `scripts/capture-launch-screenshots.mjs` regenerates launch screenshots from the built app.
 - README links to the launch page and screenshot set.
 - Package dry-run includes `docs/index.html`, `docs/project-launch.html`, launch docs, examples, and assets.
@@ -29,7 +30,7 @@ Phase 6 makes AgentDesk publicly launchable beyond the app itself: GitHub Pages,
 - `npm run screenshots:launch`
 - Cloudflare Pages smoke check returns the new build.
 - GitHub Actions CI completes successfully on `main`.
-- GitHub Pages URL returns the launch page after repository Pages settings allow GitHub Actions deployments.
+- GitHub Pages URL returns the launch page from `main` `/docs`.
 
 ## Hold Conditions
 

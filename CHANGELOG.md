@@ -6,7 +6,7 @@
 - Added launch detail copy, Phase 6 gate, social launch drafts, and screenshot inventory.
 - Added reproducible launch screenshot capture via `npm run screenshots:launch`.
 - Added launch screenshots for Start, BYOK LLM config, failed-step debugging, and artifacts.
-- Added GitHub Pages workflow for publishing the `docs/` launch site.
+- Added GitHub Pages launch files for publishing the `docs/` launch site.
 - Refreshed public docs around Cloud BYOK, provider CORS, browser-direct security caveats, and package inclusion.
 
 ## 0.4.0 - 2026-07-04

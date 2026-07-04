@@ -8,7 +8,7 @@ AgentDesk is a local visual debugger for AI agent workflows: replay failed steps
 
 - Live app: https://agentdesk-clf.pages.dev/
 - GitHub repo: https://github.com/karurikwao/agentdesk
-- GitHub Pages launch page after the Pages job completes: https://karurikwao.github.io/agentdesk/
+- GitHub Pages launch page: https://karurikwao.github.io/agentdesk/
 - NPM package name: `agentdesk` (unpublished until final publish decision)
 
 ## Screenshots
@@ -81,14 +81,14 @@ GitHub: https://github.com/karurikwao/agentdesk
 - [x] README explains the debugger positioning.
 - [x] Launch page exists under `docs/index.html`.
 - [x] Screenshots exist under `docs/assets`.
-- [x] GitHub Pages workflow is configured.
+- [x] GitHub Pages is configured to publish `main` `/docs`.
 - [x] CI runs typecheck, tests, build, browser regressions, package smoke, audit, and pack dry-run.
 - [x] Cloudflare deployment is live.
 - [x] Security notes mention BYOK browser-direct caveats.
 
 ## Known Limits To Say Out Loud
 
-- GitHub Pages must be enabled for GitHub Actions deployments in repository settings if it is not already active.
+- GitHub Pages serves the static launch site from `main` `/docs`.
 - Browser-direct OpenAI/Anthropic calls may be blocked by provider CORS or organization settings.
 - Production apps should proxy cloud model calls through a backend secret boundary.
 - BYOK prompts and responses are trace/debug/artifact evidence; API keys are not exported.
