@@ -1,22 +1,29 @@
 import { useState } from "react";
 import { KeyRound, PlugZap, Plus, ShieldCheck } from "lucide-react";
 import { parseMcpConfigReport, sampleMcpConfig, type McpImportReport } from "../lib/mcp";
+import { summarizeRuntimeProfiles, type RuntimeProfileDocument } from "../lib/runtimeProfiles";
 import type { ImportedMcpServer } from "../types/workflow";
 
 type McpPanelProps = {
   importedServers: ImportedMcpServer[];
+  runtimeProfiles: RuntimeProfileDocument | null;
   onImport: (servers: ImportedMcpServer[]) => void;
   onImportConfigText: (configText: string) => void;
   onDiscoverServer: (server: ImportedMcpServer) => void;
   onCreateNodes: () => void;
+  onSaveRuntimeProfiles: () => void;
+  onLoadRuntimeProfiles: () => void;
 };
 
 export function McpPanel({
   importedServers,
+  runtimeProfiles,
   onImport,
   onImportConfigText,
   onDiscoverServer,
-  onCreateNodes
+  onCreateNodes,
+  onSaveRuntimeProfiles,
+  onLoadRuntimeProfiles
 }: McpPanelProps) {
   const [input, setInput] = useState(sampleMcpConfig);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +73,7 @@ export function McpPanel({
           <span>{report.warnings.length === 0 ? "No import warnings" : report.warnings.join(" ")}</span>
         </div>
       ) : null}
+      <ProfileSummary importedServers={importedServers} runtimeProfiles={runtimeProfiles} />
       <div className="mcp-server-list">
         {importedServers.map((server) => (
           <div className="mcp-server" key={server.id}>
@@ -120,7 +128,42 @@ export function McpPanel({
         <Plus size={15} />
         <span>Add MCP nodes</span>
       </button>
+      <div className="mcp-profile-actions">
+        <button type="button" className="secondary-button" onClick={onSaveRuntimeProfiles}>
+          Save profiles
+        </button>
+        <button type="button" className="secondary-button" onClick={onLoadRuntimeProfiles}>
+          Load profiles
+        </button>
+      </div>
     </section>
+  );
+}
+
+function ProfileSummary({
+  importedServers,
+  runtimeProfiles
+}: {
+  importedServers: ImportedMcpServer[];
+  runtimeProfiles: RuntimeProfileDocument | null;
+}) {
+  const summary = summarizeRuntimeProfiles(runtimeProfiles);
+
+  return (
+    <div className="runtime-profile-summary" aria-label="Runtime profile status">
+      <div>
+        <strong>{importedServers.length}</strong>
+        <span>Imported</span>
+      </div>
+      <div>
+        <strong>{summary.approved}</strong>
+        <span>Approved</span>
+      </div>
+      <div>
+        <strong>{summary.blocked}</strong>
+        <span>Blocked</span>
+      </div>
+    </div>
   );
 }
 

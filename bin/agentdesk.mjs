@@ -10,8 +10,9 @@ const here = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(here, "..");
 const distRoot = resolve(projectRoot, "dist");
 const launchRoot = process.cwd();
-const runtimeVersion = "0.6.1";
+const runtimeVersion = "0.7.0";
 const mcpProtocolVersion = "2025-11-25";
+const defaultMcpAdapter = process.env.AGENTDESK_MCP_ADAPTER === "legacy-jsonrpc" ? "legacy-jsonrpc" : "official-sdk";
 const maxBodyBytes = 512 * 1024;
 const maxOutputBytes = 96 * 1024;
 const defaultTimeoutMs = 15000;
@@ -151,6 +152,7 @@ async function handleRuntimeRequest(request, response, requestedPath) {
       version: runtimeVersion,
       capabilities: [
         "local-command-exec",
+        "mcp-official-sdk-stdio",
         "mcp-stdio-initialize",
         "mcp-tools-list",
         "mcp-tools-call",
@@ -321,6 +323,71 @@ async function discoverMcpFromBody(body) {
 }
 
 async function discoverStdioMcp(serverId, server, body) {
+  if (defaultMcpAdapter === "official-sdk") {
+    return discoverStdioMcpWithSdk(serverId, server, body);
+  }
+
+  return discoverStdioMcpLegacy(serverId, server, body);
+}
+
+async function discoverStdioMcpWithSdk(serverId, server, body) {
+  const command = stringValue(server.command);
+  const args = Array.isArray(server.args) ? server.args.map(String) : [];
+  const cwd = resolveRuntimeCwd(stringValue(server.cwd));
+  const timeoutMs = clampTimeout(Number(server.timeoutMs ?? defaultTimeoutMs));
+  const stderrChunks = [];
+  const { Client } = await import("@modelcontextprotocol/sdk/client/index.js");
+  const { StdioClientTransport } = await import("@modelcontextprotocol/sdk/client/stdio.js");
+  const transport = new StdioClientTransport({
+    command,
+    args,
+    cwd,
+    env: {
+      ...process.env,
+      ...objectEnv(server.env)
+    },
+    stderr: "pipe"
+  });
+  transport.stderr?.on("data", (chunk) => {
+    stderrChunks.push(chunk.toString("utf8"));
+  });
+  const client = new Client(
+    {
+      name: "AgentDesk",
+      title: "AgentDesk Local Runtime",
+      version: runtimeVersion
+    },
+    {
+      capabilities: {}
+    }
+  );
+
+  try {
+    await client.connect(transport, { timeout: timeoutMs });
+    const initialized = {
+      protocolVersion: mcpProtocolVersion,
+      serverInfo: client.getServerVersion(),
+      capabilities: client.getServerCapabilities()
+    };
+    const toolsResult = await listAllSdkMcpTools(client, timeoutMs);
+    const toolCall = await maybeCallSdkMcpTool(client, body, timeoutMs);
+
+    return {
+      ...mcpDiscoveryFromResults(
+        serverId,
+        initialized,
+        toolsResult,
+        toolCall,
+        stderrChunks.join("")
+      ),
+      adapter: "official-sdk"
+    };
+  } finally {
+    await client.close().catch(() => undefined);
+  }
+}
+
+async function discoverStdioMcpLegacy(serverId, server, body) {
   const command = stringValue(server.command);
   const args = Array.isArray(server.args) ? server.args.map(String) : [];
   const cwd = resolveRuntimeCwd(stringValue(server.cwd));
@@ -338,10 +405,52 @@ async function discoverStdioMcp(serverId, server, body) {
     await client.notify("notifications/initialized", {});
     const toolsResult = await listAllStdioMcpTools(client);
     const toolCall = await maybeCallMcpTool(client, body);
-    return mcpDiscoveryFromResults(serverId, initialized, toolsResult, toolCall, client.stderr());
+    return {
+      ...mcpDiscoveryFromResults(serverId, initialized, toolsResult, toolCall, client.stderr()),
+      adapter: "legacy-jsonrpc"
+    };
   } finally {
     await client.close();
   }
+}
+
+async function listAllSdkMcpTools(client, timeoutMs) {
+  const tools = [];
+  let nextCursor;
+
+  for (let page = 0; page < 20; page += 1) {
+    const result = await client.listTools(nextCursor ? { cursor: nextCursor } : {}, { timeout: timeoutMs });
+    if (Array.isArray(result?.tools)) {
+      tools.push(...result.tools);
+    }
+
+    nextCursor = stringValue(result?.nextCursor);
+    if (!nextCursor) {
+      return {
+        ...result,
+        tools
+      };
+    }
+  }
+
+  throw new Error("MCP tools/list pagination exceeded the AgentDesk 20-page safety limit.");
+}
+
+async function maybeCallSdkMcpTool(client, body, timeoutMs) {
+  const toolName = stringValue(body.toolName);
+
+  if (!toolName) {
+    return undefined;
+  }
+
+  return client.callTool(
+    {
+      name: toolName,
+      arguments: parseToolInput(body.toolInputJson)
+    },
+    undefined,
+    { timeout: timeoutMs }
+  );
 }
 
 async function discoverHttpMcp(serverId, server, body) {

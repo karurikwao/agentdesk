@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createWorkflowExport } from "./export";
+import { createWorkflowExport, createZipBlob, sanitizeZipPath } from "./export";
 import type { AgentWorkflow, TraceEvent } from "../types/workflow";
 
 describe("workflow export", () => {
@@ -95,5 +95,33 @@ describe("workflow export", () => {
     expect(serialized).not.toContain("key-value");
     expect(serialized).not.toContain("PRIVATE KEY");
     expect(serialized).not.toContain("C:\\\\Users");
+  });
+});
+
+describe("trace bundle zip export", () => {
+  it("creates a zip blob with sanitized file paths", async () => {
+    const blob = createZipBlob([
+      {
+        path: "manifest.json",
+        content: "{}"
+      },
+      {
+        path: "../events\\bad folder/stdout.log",
+        content: "ok"
+      }
+    ]);
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    const asText = new TextDecoder().decode(bytes);
+
+    expect(blob.type).toBe("application/zip");
+    expect(asText).toContain("manifest.json");
+    expect(asText).toContain("events/bad-folder/stdout.log");
+    expect(asText).not.toContain("../");
+    expect(asText).not.toContain("events\\bad folder");
+  });
+
+  it("normalizes unsafe zip paths", () => {
+    expect(sanitizeZipPath("../x\\bad name/file?.json")).toBe("x/bad-name/file-.json");
+    expect(sanitizeZipPath("../../")).toBe("artifact");
   });
 });

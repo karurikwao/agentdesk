@@ -1,4 +1,4 @@
-import { Download, Play, RotateCcw, Square, Upload } from "lucide-react";
+import { Archive, Download, Play, RotateCcw, Square, Upload } from "lucide-react";
 import type { RunMode, RunStatus } from "../types/workflow";
 
 type TopbarProps = {
@@ -14,6 +14,7 @@ type TopbarProps = {
   onStop: () => void;
   onReplay: () => void;
   onExport: () => void;
+  onExportBundle: () => void;
   onImport: () => void;
 };
 
@@ -30,6 +31,7 @@ export function Topbar({
   onStop,
   onReplay,
   onExport,
+  onExportBundle,
   onImport
 }: TopbarProps) {
   const isRunning = status === "running";
@@ -112,6 +114,15 @@ export function Topbar({
           aria-label="Export replay session"
         >
           <Download size={17} />
+        </button>
+        <button
+          type="button"
+          className="icon-button"
+          onClick={onExportBundle}
+          title="Download trace bundle ZIP"
+          aria-label="Download trace bundle ZIP"
+        >
+          <Archive size={17} />
         </button>
         <button
           type="button"

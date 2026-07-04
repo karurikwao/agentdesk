@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0 - Issue queue sweep
+
+- Added the official MCP SDK stdio adapter inside the loopback runtime boundary, with the legacy JSON-RPC client kept as an explicit fallback.
+- Added persistent local runtime profile documents that store only approved command/MCP metadata and secret key names.
+- Added trace bundle ZIP download with sanitized paths and an unchanged replay-session export.
+- Added readable LangGraph and CrewAI example workflows under `docs/examples`.
+- Added visible keyboard focus treatment and e2e coverage for trace-row inspection.
+
 ## 0.6.4 - Portable npx command
 
 - Updated README and release docs to use `npx --yes --package=@papaplus/agentdesk agentdesk --port 5173`, which works on Windows and other shells for the scoped package.

@@ -5,7 +5,7 @@ import { Topbar } from "./components/Topbar";
 import { WorkflowCanvas } from "./components/WorkflowCanvas";
 import { InspectorRail, type InspectorTab } from "./components/InspectorRail";
 import { demoWorkflows } from "./data/workflows";
-import { downloadJson } from "./lib/export";
+import { downloadJson, downloadTraceBundleZip } from "./lib/export";
 import { createCostBreakdown, createTraceEvent, getRunOrder, validateWorkflowGraph } from "./lib/runEngine";
 import { checkOllamaStatus, runOllamaNode } from "./lib/ollama";
 import { runCloudLlmNode } from "./lib/cloudLlm";
@@ -17,6 +17,13 @@ import {
   type LocalRuntimeStatus
 } from "./lib/localRuntime";
 import { sampleMcpConfig } from "./lib/mcp";
+import {
+  createRuntimeProfileDocument,
+  loadRuntimeProfiles,
+  saveRuntimeProfiles,
+  summarizeRuntimeProfiles,
+  type RuntimeProfileDocument
+} from "./lib/runtimeProfiles";
 import {
   defaultLlmRuntimeConfig,
   hasUsableCloudConfig,
@@ -71,6 +78,13 @@ export function App() {
   const [selectedArtifactId, setSelectedArtifactId] = useState<string | undefined>();
   const [activeInspectorTab, setActiveInspectorTab] = useState<InspectorTab>("start");
   const [importedServers, setImportedServers] = useState<ImportedMcpServer[]>([]);
+  const [runtimeProfiles, setRuntimeProfiles] = useState<RuntimeProfileDocument | null>(() => {
+    try {
+      return loadRuntimeProfiles();
+    } catch {
+      return null;
+    }
+  });
   const [mcpConfigText, setMcpConfigText] = useState(sampleMcpConfig);
   const [runtimeStatus, setRuntimeStatus] = useState<LocalRuntimeStatus>({
     available: false,
@@ -280,6 +294,35 @@ export function App() {
 
     setNodes((currentNodes) => [...currentNodes, ...importedNodes]);
     setActiveInspectorTab("validation");
+  }
+
+  function saveApprovedRuntimeProfiles() {
+    const profiles = createRuntimeProfileDocument(runtimeWorkflow, importedServers);
+    saveRuntimeProfiles(profiles);
+    setRuntimeProfiles(profiles);
+    const summary = summarizeRuntimeProfiles(profiles);
+    setSessionNotice(
+      `Saved ${summary.approved} approved runtime profile(s) locally; ${summary.blocked} blocked profile(s) kept as metadata only.`
+    );
+    setSessionError(undefined);
+    setActiveInspectorTab("mcp");
+  }
+
+  function loadApprovedRuntimeProfiles() {
+    try {
+      const profiles = loadRuntimeProfiles();
+      setRuntimeProfiles(profiles);
+      const summary = summarizeRuntimeProfiles(profiles);
+      setSessionNotice(
+        profiles
+          ? `Loaded ${summary.total} local runtime profile(s): ${summary.approved} approved, ${summary.blocked} blocked.`
+          : "No local runtime profiles are saved in this browser yet."
+      );
+      setSessionError(undefined);
+    } catch (error) {
+      setSessionError(error instanceof Error ? error.message : "Unable to load local runtime profiles.");
+    }
+    setActiveInspectorTab("mcp");
   }
 
   function updateLlmConfig(nextConfig: LlmRuntimeConfig) {
@@ -563,6 +606,10 @@ export function App() {
     );
   }
 
+  function exportTraceBundle() {
+    downloadTraceBundleZip(runtimeWorkflow, trace);
+  }
+
   function openReplayImport() {
     importInputRef.current?.click();
   }
@@ -690,6 +737,7 @@ export function App() {
             onStop={stopRun}
             onReplay={replayRun}
             onExport={exportWorkflow}
+            onExportBundle={exportTraceBundle}
             onImport={openReplayImport}
           />
           <input
@@ -738,6 +786,7 @@ export function App() {
                 configuredCloudModelNodeCount={configuredCloudModelNodeCount}
                 llmConfig={llmConfig}
                 importedServers={importedServers}
+                runtimeProfiles={runtimeProfiles}
                 sessionNotice={sessionNotice}
                 sessionError={sessionError}
                 onRunDemo={runWorkflow}
@@ -760,6 +809,8 @@ export function App() {
                 onImportMcpConfigText={setMcpConfigText}
                 onDiscoverMcpServer={discoverImportedMcp}
                 onCreateMcpNodes={addImportedMcpNodes}
+                onSaveRuntimeProfiles={saveApprovedRuntimeProfiles}
+                onLoadRuntimeProfiles={loadApprovedRuntimeProfiles}
                 onCheckOllama={probeOllama}
                 onCheckRuntime={probeLocalRuntime}
               />

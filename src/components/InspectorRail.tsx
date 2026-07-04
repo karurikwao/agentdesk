@@ -32,6 +32,7 @@ import type {
 import type { LlmRuntimeConfig } from "../lib/llmConfig";
 import type { LocalRuntimeStatus } from "../lib/localRuntime";
 import type { OllamaReadinessStatus, ReadinessCheck, ReadinessReport } from "../lib/readiness";
+import type { RuntimeProfileDocument } from "../lib/runtimeProfiles";
 
 export type InspectorTab =
   | "start"
@@ -66,6 +67,7 @@ type InspectorRailProps = {
   configuredCloudModelNodeCount: number;
   llmConfig: LlmRuntimeConfig;
   importedServers: ImportedMcpServer[];
+  runtimeProfiles: RuntimeProfileDocument | null;
   sessionNotice: string;
   sessionError?: string;
   onRunDemo: () => void;
@@ -85,6 +87,8 @@ type InspectorRailProps = {
   onImportMcpConfigText: (configText: string) => void;
   onDiscoverMcpServer: (server: ImportedMcpServer) => void;
   onCreateMcpNodes: () => void;
+  onSaveRuntimeProfiles: () => void;
+  onLoadRuntimeProfiles: () => void;
   onCheckOllama: () => void;
   onCheckRuntime: () => void;
 };
@@ -123,6 +127,7 @@ export function InspectorRail({
   configuredCloudModelNodeCount,
   llmConfig,
   importedServers,
+  runtimeProfiles,
   sessionNotice,
   sessionError,
   onRunDemo,
@@ -142,6 +147,8 @@ export function InspectorRail({
   onImportMcpConfigText,
   onDiscoverMcpServer,
   onCreateMcpNodes,
+  onSaveRuntimeProfiles,
+  onLoadRuntimeProfiles,
   onCheckOllama,
   onCheckRuntime
 }: InspectorRailProps) {
@@ -229,10 +236,13 @@ export function InspectorRail({
         {activeTab === "mcp" ? (
           <McpPanel
             importedServers={importedServers}
+            runtimeProfiles={runtimeProfiles}
             onImport={onImportServers}
             onImportConfigText={onImportMcpConfigText}
             onDiscoverServer={onDiscoverMcpServer}
             onCreateNodes={onCreateMcpNodes}
+            onSaveRuntimeProfiles={onSaveRuntimeProfiles}
+            onLoadRuntimeProfiles={onLoadRuntimeProfiles}
           />
         ) : null}
       </div>

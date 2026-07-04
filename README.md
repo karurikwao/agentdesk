@@ -211,16 +211,22 @@ The CLI serves the built `dist` app from localhost with conservative static-serv
 - Project storage is replay-session import/export only for now; there is no persistent workspace database.
 - The README uses a current screenshot; an optional short GIF can replace it in a later promo pass.
 
+## Recently Completed
+
+- Official MCP SDK stdio adapter with an explicit legacy JSON-RPC fallback.
+- Persistent local runtime profiles for approved MCP configs and local command adapters.
+- ZIP export for the current trace bundle manifest and artifact files.
+- Keyboard trace inspection plus LangGraph and CrewAI example workflows.
+
 ## Roadmap
 
-- Official MCP SDK transport adapter on top of the current JSON-RPC runtime.
-- Persistent workspace profiles for approved MCP configs and local command adapters.
-- Zip export for the current trace bundle manifest.
-- Launch video and GIF for the README hero.
+- Persistent workspace database for saved projects and trace history.
+- Deeper framework imports for LangGraph, CrewAI, OpenAI Agents SDK traces, and Vercel AI SDK examples.
+- Three polished launch videos for README, Product Hunt, and Hacker News.
 
 ## Launch Assets
 
-- Release notes: [`docs/RELEASE_v0.6.1.md`](./docs/RELEASE_v0.6.1.md)
+- Release notes: [`docs/RELEASE_v0.7.0.md`](./docs/RELEASE_v0.7.0.md)
 - Good first issues: [live issue queue](https://github.com/karurikwao/agentdesk/issues?q=is%3Aissue%20is%3Aopen%20label%3A%22good%20first%20issue%22) and [`docs/GOOD_FIRST_ISSUES.md`](./docs/GOOD_FIRST_ISSUES.md)
 - Killer demo: [`docs/KILLER_DEMO.md`](./docs/KILLER_DEMO.md)
 - NPM publish runbook: [`docs/NPM_PUBLISH.md`](./docs/NPM_PUBLISH.md)

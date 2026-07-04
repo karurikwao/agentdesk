@@ -90,6 +90,20 @@ test("replays a failed step and inspects captured artifacts", async ({ page }) =
     throw new Error("Playwright did not expose the replay-session download path.");
   }
 
+  const [zipDownload] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("button", { name: "Download trace bundle ZIP" }).click()
+  ]);
+  expect(zipDownload.suggestedFilename()).toMatch(/failure-replay\.trace-bundle\.zip$/);
+
+  const zipPath = await zipDownload.path();
+  if (!zipPath) {
+    throw new Error("Playwright did not expose the trace-bundle ZIP download path.");
+  }
+
+  const zipBytes = await readFile(zipPath);
+  expect(zipBytes.toString("latin1")).toContain("manifest.json");
+
   await page.reload();
   await expect(page.getByRole("heading", { name: "Failure Replay Lab" })).toBeVisible();
 
@@ -101,6 +115,28 @@ test("replays a failed step and inspects captured artifacts", async ({ page }) =
   await page.getByRole("tab", { name: "Debug" }).click();
   await expect(page.getByLabel("Node debugger")).toContainText("Browser Replay");
   await expect(page.getByLabel("Node debugger")).toContainText("Latest event: complete");
+});
+
+test("inspects a trace event from keyboard focus", async ({ page }) => {
+  await page.goto("/");
+  await selectDemo(page, "Failure Replay Lab");
+
+  await page.getByRole("button", { name: "Run demo trace" }).click();
+  await expect(page.getByLabel("Node debugger")).toContainText("Browser Replay", {
+    timeout: 12_000
+  });
+  await expect(page.getByLabel("Node debugger")).toContainText("DEMO_TOOL_TIMEOUT");
+  await page.getByRole("tab", { name: "Trace" }).click();
+
+  const failedTraceEvent = page.getByRole("button", { name: "Inspect Browser Replay" });
+  await expect(failedTraceEvent).toBeVisible();
+  await failedTraceEvent.focus();
+  await expect(failedTraceEvent).toBeFocused();
+  await expect(failedTraceEvent).toHaveCSS("border-color", "rgba(14, 165, 233, 0.76)");
+  await failedTraceEvent.press("Enter");
+
+  await expect(page.getByLabel("Node debugger")).toContainText("Browser Replay");
+  await expect(page.getByLabel("Node debugger")).toContainText("DEMO_TOOL_TIMEOUT");
 });
 
 test("imports MCP metadata with readiness and risk labels", async ({ page }) => {

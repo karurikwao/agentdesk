@@ -5,7 +5,7 @@ import { createPortableWorkflow, createTraceSummary } from "./schema";
 export function createWorkflowExport(workflow: AgentWorkflow, trace: TraceEvent[]) {
   return {
     schema: "agentdesk.workflow.v1",
-    appVersion: "0.6.1",
+    appVersion: "0.7.0",
     exportedAt: new Date().toISOString(),
     portableWorkflow: sanitizeExportPayload(createPortableWorkflow(workflow)),
     traceSummary: sanitizeExportPayload(createTraceSummary(trace)),
@@ -23,12 +23,154 @@ export function downloadJson(filename: string, payload: unknown) {
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
     type: "application/json"
   });
+  downloadBlob(filename, blob);
+}
+
+export function downloadTraceBundleZip(workflow: AgentWorkflow, trace: TraceEvent[]) {
+  const bundle = createTraceBundle(workflow, trace);
+  const blob = createZipBlob(
+    bundle.files.map((file) => ({
+      path: file.path,
+      content: file.content
+    }))
+  );
+
+  downloadBlob(`${workflow.id}.trace-bundle.zip`, blob);
+}
+
+export function createZipBlob(files: Array<{ path: string; content: string }>) {
+  const encoder = new TextEncoder();
+  const now = new Date();
+  const localParts: Uint8Array[] = [];
+  const centralParts: Uint8Array[] = [];
+  let offset = 0;
+
+  for (const file of files) {
+    const path = sanitizeZipPath(file.path);
+    const nameBytes = encoder.encode(path);
+    const contentBytes = encoder.encode(file.content);
+    const crc = crc32(contentBytes);
+    const localHeader = createLocalFileHeader(nameBytes, contentBytes.length, crc, now);
+    const centralHeader = createCentralDirectoryHeader(nameBytes, contentBytes.length, crc, now, offset);
+
+    localParts.push(localHeader, contentBytes);
+    centralParts.push(centralHeader);
+    offset += localHeader.length + contentBytes.length;
+  }
+
+  const centralOffset = offset;
+  const centralSize = centralParts.reduce((sum, part) => sum + part.length, 0);
+  const end = createEndOfCentralDirectory(files.length, centralSize, centralOffset);
+
+  return new Blob([concatBytes([...localParts, ...centralParts, end])], {
+    type: "application/zip"
+  });
+}
+
+export function sanitizeZipPath(path: string) {
+  return path
+    .replace(/\\/g, "/")
+    .split("/")
+    .filter((segment) => segment && segment !== "." && segment !== "..")
+    .map((segment) => segment.replace(/[^A-Za-z0-9._-]/g, "-"))
+    .join("/")
+    .replace(/^\/+/, "") || "artifact";
+}
+
+function downloadBlob(filename: string, blob: Blob) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
   anchor.download = filename;
   anchor.click();
   URL.revokeObjectURL(url);
+}
+
+function createLocalFileHeader(nameBytes: Uint8Array, size: number, crc: number, date: Date) {
+  const buffer = new ArrayBuffer(30 + nameBytes.length);
+  const view = new DataView(buffer);
+  view.setUint32(0, 0x04034b50, true);
+  view.setUint16(4, 20, true);
+  view.setUint16(6, 0x0800, true);
+  view.setUint16(8, 0, true);
+  view.setUint16(10, dosTime(date), true);
+  view.setUint16(12, dosDate(date), true);
+  view.setUint32(14, crc, true);
+  view.setUint32(18, size, true);
+  view.setUint32(22, size, true);
+  view.setUint16(26, nameBytes.length, true);
+  new Uint8Array(buffer).set(nameBytes, 30);
+  return new Uint8Array(buffer);
+}
+
+function createCentralDirectoryHeader(
+  nameBytes: Uint8Array,
+  size: number,
+  crc: number,
+  date: Date,
+  localOffset: number
+) {
+  const buffer = new ArrayBuffer(46 + nameBytes.length);
+  const view = new DataView(buffer);
+  view.setUint32(0, 0x02014b50, true);
+  view.setUint16(4, 20, true);
+  view.setUint16(6, 20, true);
+  view.setUint16(8, 0x0800, true);
+  view.setUint16(10, 0, true);
+  view.setUint16(12, dosTime(date), true);
+  view.setUint16(14, dosDate(date), true);
+  view.setUint32(16, crc, true);
+  view.setUint32(20, size, true);
+  view.setUint32(24, size, true);
+  view.setUint16(28, nameBytes.length, true);
+  view.setUint32(42, localOffset, true);
+  new Uint8Array(buffer).set(nameBytes, 46);
+  return new Uint8Array(buffer);
+}
+
+function createEndOfCentralDirectory(fileCount: number, centralSize: number, centralOffset: number) {
+  const buffer = new ArrayBuffer(22);
+  const view = new DataView(buffer);
+  view.setUint32(0, 0x06054b50, true);
+  view.setUint16(8, fileCount, true);
+  view.setUint16(10, fileCount, true);
+  view.setUint32(12, centralSize, true);
+  view.setUint32(16, centralOffset, true);
+  return new Uint8Array(buffer);
+}
+
+function concatBytes(parts: Uint8Array[]): ArrayBuffer {
+  const totalLength = parts.reduce((sum, part) => sum + part.length, 0);
+  const bytes = new Uint8Array(totalLength);
+  let offset = 0;
+
+  for (const part of parts) {
+    bytes.set(part, offset);
+    offset += part.length;
+  }
+
+  return bytes.buffer as ArrayBuffer;
+}
+
+function dosTime(date: Date) {
+  return (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2);
+}
+
+function dosDate(date: Date) {
+  return ((date.getFullYear() - 1980) << 9) | ((date.getMonth() + 1) << 5) | date.getDate();
+}
+
+function crc32(bytes: Uint8Array) {
+  let crc = 0xffffffff;
+
+  for (const byte of bytes) {
+    crc ^= byte;
+    for (let bit = 0; bit < 8; bit += 1) {
+      crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
+    }
+  }
+
+  return (crc ^ 0xffffffff) >>> 0;
 }
 
 export function sanitizeExportPayload<T>(value: T): T {
