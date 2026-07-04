@@ -1,6 +1,6 @@
 {
   "name": "agentdesk",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Local visual debugger for replaying and inspecting AI agent workflows.",
   "type": "module",
   "packageManager": "npm@11.13.0",
@@ -14,7 +14,7 @@
     "typecheck": "tsc -b --pretty false",
     "lint": "npm run typecheck",
     "test": "vitest run",
-    "test:e2e": "npm run build && playwright test",
+    "test:e2e": "npm run build && node scripts/run-e2e.mjs",
     "test:e2e:install": "playwright install chromium",
     "check:launch-page": "node scripts/check-launch-page.mjs",
     "screenshots:launch": "npm run build && node scripts/capture-launch-screenshots.mjs",

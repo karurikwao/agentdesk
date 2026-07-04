@@ -8,7 +8,7 @@
 
 AgentDesk answers the 10-second question: **what actually happened inside this agent run, and can I replay or share the evidence?**
 
-It gives developers a graph canvas, a first-run Start view, click-linked traces, node-level prompt/tool/result inspection, failed-step replay, artifact viewing, metadata-only MCP imports, secret/path redaction, local Ollama model-node execution, session-only BYOK OpenAI/Anthropic model execution, and portable workflow exports.
+It gives developers a graph canvas, a first-run Start view, click-linked traces, node-level prompt/tool/result inspection, failed-step replay, artifact viewing, MCP import plus live discovery, secret/path redaction, local Ollama model-node execution, session-only BYOK OpenAI/Anthropic model execution, loopback Runtime mode for local tools/MCP, and portable workflow exports.
 
 [Live demo](https://agentdesk-clf.pages.dev/) | [Launch page](https://karurikwao.github.io/agentdesk/) | [GitHub repo](https://github.com/karurikwao/agentdesk)
 
@@ -35,16 +35,16 @@ Use it when you need to explain or reproduce an agent run locally. Use a workflo
 - Debugger inspector tabs for Start, Trace, Debug, Artifacts, Costs, Validation, Doctor, LLMs, and MCP import.
 - Artifact viewer for JSON, markdown, simulated screenshot SVG previews, stdout, and stderr captured from trace events.
 - Graph health UI for cycles, missing endpoints, duplicate IDs, missing edges, unreachable outputs, and non-output dead ends.
-- Live local Ollama mode for `provider: "ollama"` model nodes only.
+- Live local Ollama mode for `provider: "ollama"` model nodes.
 - Cloud BYOK mode for configured `provider: "openai"` and `provider: "anthropic"` model nodes, with API keys held in browser session state only.
+- Runtime mode through the packaged loopback CLI for local command nodes, MCP stdio initialize/list-tools/call-tool, and remote MCP HTTP probing.
 - Provider/model dropdown presets for OpenAI Responses and Anthropic Messages, plus editable base URL and model fields.
 - MCP config import for Claude-style `mcpServers`, VS Code-style `servers`, nested `mcp.servers`, remote server URLs, and single-server JSON.
-- MCP metadata readiness, risk flags, inferred tool hints, and env/header key names without secret values.
-- Replay-session import/export with `portableWorkflow`, `traceSummary`, full trace data, artifacts, costs, validation issues, selected evidence, imported MCP metadata, and secret/path redaction.
+- MCP readiness, risk flags, inferred/live tool hints, and env/header key names without secret values.
+- Replay-session import/export with `portableWorkflow`, `traceSummary`, trace bundle manifest, LangGraph/CrewAI starter exports, full trace data, artifacts, costs, validation issues, selected evidence, imported MCP metadata, and secret/path redaction.
 - Packaged static CLI via `agentdesk` after `npm run build`.
 
-Imported MCP commands are **metadata-only** in this release. AgentDesk does not execute MCP stdio commands or probe remote MCP URLs automatically.
-Non-model tool, MCP, local, and unmatched cloud-provider steps remain simulated unless a future runtime explicitly enables them.
+Static hosted demos do not execute local processes. Live local command and MCP execution is available only when you run the packaged CLI on loopback and switch to `Runtime` mode.
 
 ## Quick Start
 
@@ -92,6 +92,22 @@ Cloud-provider model nodes remain simulated too, with trace entries marked as si
 
 Only configured OpenAI/Anthropic model nodes execute in Cloud mode. API keys stay in this browser tab's React state and are not saved to localStorage, replay sessions, workflow exports, or debug payloads. Cloud BYOK calls are browser-direct: provider CORS, browser policy, or organization settings may block direct requests, and production apps should use a backend proxy or hosted secret boundary.
 
+### Optional Runtime Mode
+
+1. Build and start the packaged CLI:
+
+```bash
+npm run build
+node ./bin/agentdesk.mjs --port 5173
+```
+
+2. Open `http://127.0.0.1:5173`.
+3. Click `Doctor`, then `Check runtime`.
+4. Switch run mode to `Runtime`.
+5. Run workflows with configured `provider: "local"` command nodes, or import an MCP config and click `Discover` on an MCP server.
+
+Runtime mode uses loopback-only API routes, JSON-only requests, no shell by default, fixed timeouts, stdout/stderr caps, and redacted trace artifacts. MCP stdio servers are initialized through JSON-RPC, `tools/list` is captured as evidence, and `tools/call` is available when a node supplies `toolName` and optional `toolInputJson` in config. Remote MCP HTTP endpoints are probed only after explicit discovery.
+
 ## MCP Import Examples
 
 - [`docs/examples/mcp-claude-desktop.json`](./docs/examples/mcp-claude-desktop.json)
@@ -126,9 +142,10 @@ The CLI serves the built `dist` app from localhost with conservative static-serv
 
 ## Current Limits
 
-- MCP command execution and true MCP tool discovery are intentionally not enabled yet.
 - Ollama calls happen from the browser to `127.0.0.1:11434`; CORS settings may need adjustment in some local Ollama setups.
 - Cloud BYOK calls happen directly from the browser tab; provider CORS may block some endpoints, and production apps should use a backend proxy or hosted secret boundary instead.
+- Runtime mode requires the packaged CLI; static Cloudflare and GitHub Pages builds cannot spawn local processes.
+- Shell commands are blocked unless `AGENTDESK_ALLOW_SHELL=1` is set before starting the CLI.
 - BYOK prompts and responses become trace/debug/artifact evidence, even though API keys are excluded from exports.
 - Workflow execution is still linear/topological; advanced branching and joins are schema-ready but not fully interactive.
 - Project storage is replay-session import/export only for now; there is no persistent workspace database.
@@ -136,15 +153,14 @@ The CLI serves the built `dist` app from localhost with conservative static-serv
 
 ## Roadmap
 
-- Approval-gated Node-side MCP runner using the official MCP SDK.
-- Real MCP initialize/list-tools discovery with timeout and process cleanup.
-- Shareable multi-file trace bundle with screenshots and stdout/stderr artifacts.
-- LangGraph/CrewAI export adapters.
+- Official MCP SDK transport adapter on top of the current JSON-RPC runtime.
+- Persistent workspace profiles for approved MCP configs and local command adapters.
+- Zip export for the current trace bundle manifest.
 - Launch video and GIF for the README hero.
 
 ## Security Notes
 
-AgentDesk treats imported MCP configs and replay sessions as untrusted metadata. Exports redact common secrets and private paths, but local UI display is not a secret vault. BYOK API keys are session-only and excluded from replay exports, but direct browser calls still expose the supplied key to the local tab runtime and provider endpoint. Do not paste real secrets into node labels, prompts, stdout/stderr, artifacts, screenshots, or model responses. See [SECURITY.md](./SECURITY.md).
+AgentDesk treats imported MCP configs and replay sessions as untrusted. Runtime mode can execute local commands and MCP servers only through the loopback CLI after explicit UI action. Exports redact common secrets and private paths, but local UI display is not a secret vault. BYOK API keys are session-only and excluded from replay exports, but direct browser calls still expose the supplied key to the local tab runtime and provider endpoint. Do not paste real secrets into node labels, prompts, stdout/stderr, artifacts, screenshots, or model responses. See [SECURITY.md](./SECURITY.md).
 
 ## License
 

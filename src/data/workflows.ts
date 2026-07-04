@@ -6,7 +6,7 @@ export const demoWorkflows: AgentWorkflow[] = [
     name: "Repo QA Swarm",
     tagline: "Simulated agentic code review with replayable traces",
     description:
-      "Simulate routing a repository audit through a planner, browser checker, test runner, and final reviewer.",
+      "Route a repository audit through a planner, MCP checker, local test runner, and final reviewer.",
     nodes: [
       {
         id: "trigger",
@@ -37,7 +37,7 @@ export const demoWorkflows: AgentWorkflow[] = [
           label: "Browser MCP",
           kind: "tool",
           provider: "mcp",
-          description: "Metadata-only browser MCP step for screenshots and accessibility hints."
+          description: "Browser MCP step for screenshots and accessibility hints when a runtime MCP config is imported."
         }
       },
       {
@@ -48,7 +48,13 @@ export const demoWorkflows: AgentWorkflow[] = [
           label: "Test Runner",
           kind: "tool",
           provider: "local",
-          description: "Simulated local tool step for unit, type, and smoke checks."
+          description: "Local runtime smoke command for unit, type, and smoke check wiring.",
+          safetyPolicy: "approval-required",
+          config: {
+            command: "node",
+            argsJson: "[\"--version\"]",
+            timeoutMs: 8000
+          }
         }
       },
       {
@@ -108,7 +114,13 @@ export const demoWorkflows: AgentWorkflow[] = [
           label: "Extractor",
           kind: "tool",
           provider: "local",
-          description: "Simulate chunking and normalizing source material."
+          description: "Local runtime extraction placeholder that proves stdout/stderr capture.",
+          safetyPolicy: "approval-required",
+          config: {
+            command: "node",
+            argsJson: "[\"-e\",\"console.log(JSON.stringify({ ok: true, adapter: 'extractor' }))\"]",
+            timeoutMs: 8000
+          }
         }
       },
       {
@@ -170,9 +182,9 @@ export const demoWorkflows: AgentWorkflow[] = [
   {
     id: "mcp-router",
     name: "MCP Tool Router",
-    tagline: "Compare MCP and API tool metadata in one simulated trace",
+    tagline: "Compare MCP and API tool metadata with optional live discovery",
     description:
-      "Import MCP servers and simulate tool routing with cost and failure visibility.",
+      "Import MCP servers, discover tools through the local runtime, and route tool evidence with cost and failure visibility.",
     nodes: [
       {
         id: "intent",
@@ -203,7 +215,7 @@ export const demoWorkflows: AgentWorkflow[] = [
           label: "Filesystem MCP",
           kind: "tool",
           provider: "mcp",
-          description: "Metadata-only scoped file access through an MCP server."
+          description: "Scoped file access through an imported MCP server when Runtime mode is enabled."
         }
       },
       {
@@ -214,7 +226,7 @@ export const demoWorkflows: AgentWorkflow[] = [
           label: "Browser MCP",
           kind: "tool",
           provider: "mcp",
-          description: "Simulated browser verification metadata for visual states."
+          description: "Browser verification through an imported MCP server when Runtime mode is enabled."
         }
       },
       {
@@ -225,7 +237,13 @@ export const demoWorkflows: AgentWorkflow[] = [
           label: "Shell Guard",
           kind: "tool",
           provider: "local",
-          description: "Simulated command review step before any future execution."
+          description: "Local runtime guard step that captures stdout/stderr without shell expansion.",
+          safetyPolicy: "approval-required",
+          config: {
+            command: "node",
+            argsJson: "[\"-e\",\"console.log('shell guard ok')\"]",
+            timeoutMs: 8000
+          }
         }
       },
       {
@@ -251,9 +269,9 @@ export const demoWorkflows: AgentWorkflow[] = [
   {
     id: "failure-replay",
     name: "Failure Replay Lab",
-    tagline: "Debug a simulated failed MCP tool step without raw log archaeology",
+    tagline: "Debug a failed MCP tool step without raw log archaeology",
     description:
-      "Watch a simulated browser MCP step fail, preserve the trace, and inspect the replay artifact.",
+      "Watch a browser MCP step fail, preserve the trace, and inspect the replay artifact.",
     nodes: [
       {
         id: "intent",
@@ -331,7 +349,7 @@ export const paletteKinds = [
   {
     kind: "tool",
     label: "MCP Tool",
-    description: "Metadata-only browser, filesystem, shell, database, or custom MCP server"
+    description: "Runtime-capable browser, filesystem, shell, database, or custom MCP server"
   },
   {
     kind: "router",
@@ -341,7 +359,7 @@ export const paletteKinds = [
   {
     kind: "memory",
     label: "Memory",
-    description: "Simulate storing artifacts, context, cache, or evidence"
+    description: "Store artifacts, context, cache, or evidence in the trace bundle"
   },
   {
     kind: "output",

@@ -82,7 +82,8 @@ describe("workflow export", () => {
     expect(serialized).toContain("${userHome}");
     expect(serialized).toContain("[REDACTED]");
     expect(serialized).not.toContain("Ada");
-    expect(serialized).not.toContain("ada");
+    expect(serialized).not.toContain("\\Ada");
+    expect(serialized).not.toContain("/ada/");
     expect(serialized).not.toContain("user:pass");
     expect(serialized).not.toContain("password=secret");
     expect(serialized).not.toContain("#token");

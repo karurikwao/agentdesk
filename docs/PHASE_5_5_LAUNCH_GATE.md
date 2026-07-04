@@ -6,7 +6,7 @@ Phase 5.5 is a launch-readiness pass for AgentDesk as a local visual debugger, n
 
 - README opens with the 10-second value prop: replay the failure, inspect every prompt/tool/result, and export redacted evidence.
 - README explicitly contrasts AgentDesk with workflow builders: AgentDesk is for local debugging and evidence; workflow builders are for production automation, scheduling, queues, secrets, and live integrations.
-- Current limits stay visible: MCP/local-tool execution is metadata-only or simulated, and Cloud BYOK executes only configured OpenAI/Anthropic model nodes.
+- Current limits stay visible: MCP/local-tool execution requires the packaged loopback Runtime mode, and Cloud BYOK executes only configured OpenAI/Anthropic model nodes.
 
 ## Replay Session Round-Trip
 

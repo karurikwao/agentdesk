@@ -1,10 +1,11 @@
-import { mkdtemp, rm, unlink } from "node:fs/promises";
+import { mkdtemp, rm, unlink, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { spawn, spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
-import { createServer } from "node:net";
+import { createServer as createHttpServer } from "node:http";
+import { createServer as createTcpServer } from "node:net";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const npmExecPath = process.env.npm_execpath;
@@ -12,6 +13,7 @@ const npmCommand = npmExecPath ? process.execPath : process.platform === "win32"
 const tempRoot = await mkdtemp(join(tmpdir(), "agentdesk-package-smoke-"));
 let tarballPath;
 let server;
+let httpMcpServer;
 
 try {
   if (!existsSync(join(root, "dist", "index.html"))) {
@@ -76,6 +78,113 @@ try {
     throw new Error(`Packaged CLI served an unexpected response: HTTP ${response.status}`);
   }
 
+  const statusResponse = await fetch(`http://127.0.0.1:${port}/api/runtime/status`, {
+    headers: {
+      "X-AgentDesk-Runtime": "1"
+    }
+  });
+  const runtimeStatus = await statusResponse.json();
+
+  if (!statusResponse.ok || runtimeStatus.available !== true) {
+    throw new Error(`Runtime status smoke failed: HTTP ${statusResponse.status}`);
+  }
+
+  const executeResponse = await fetch(`http://127.0.0.1:${port}/api/runtime/execute-node`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-AgentDesk-Runtime": "1"
+    },
+    body: JSON.stringify({
+      approved: true,
+      workflow: {
+        id: "smoke",
+        name: "Smoke",
+        description: "Package smoke"
+      },
+      node: {
+        id: "node-version",
+        data: {
+          label: "Node Version",
+          kind: "tool",
+          provider: "local",
+          description: "Check Node runtime",
+          config: {
+            command: process.execPath,
+            argsJson: "[\"--version\"]"
+          }
+        }
+      },
+      index: 0,
+      runId: "smoke-run"
+    })
+  });
+  const executePayload = await executeResponse.json();
+
+  if (!executeResponse.ok || executePayload.event?.status !== "complete") {
+    throw new Error(`Runtime execute smoke failed: HTTP ${executeResponse.status}`);
+  }
+
+  const stdioServerPath = join(tempRoot, "mcp-stdio-smoke.mjs");
+  await writeFile(stdioServerPath, createStdioMcpServerSource(), "utf8");
+  const stdioDiscovery = await fetch(`http://127.0.0.1:${port}/api/runtime/mcp/discover`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-AgentDesk-Runtime": "1"
+    },
+    body: JSON.stringify({
+      approved: true,
+      serverId: "stdio-smoke",
+      toolName: "smoke_tool",
+      toolInputJson: "{\"text\":\"stdio\"}",
+      mcpConfigText: JSON.stringify({
+        mcpServers: {
+          "stdio-smoke": {
+            command: process.execPath,
+            args: [stdioServerPath]
+          }
+        }
+      })
+    })
+  });
+  const stdioPayload = await stdioDiscovery.json();
+
+  if (!stdioDiscovery.ok || stdioPayload.status !== "available" || !stdioPayload.tools?.includes("smoke_tool")) {
+    throw new Error(`MCP stdio discovery smoke failed: HTTP ${stdioDiscovery.status}`);
+  }
+
+  const httpMcpPort = await getFreePort();
+  httpMcpServer = await startHttpMcpServer(httpMcpPort);
+  const httpDiscovery = await fetch(`http://127.0.0.1:${port}/api/runtime/mcp/discover`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-AgentDesk-Runtime": "1"
+    },
+    body: JSON.stringify({
+      approved: true,
+      serverId: "http-smoke",
+      toolName: "smoke_tool",
+      toolInputJson: "{\"text\":\"http\"}",
+      mcpConfigText: JSON.stringify({
+        mcpServers: {
+          "http-smoke": {
+            url: `http://127.0.0.1:${httpMcpPort}/mcp`,
+            headers: {
+              authorization: "Bearer smoke-secret"
+            }
+          }
+        }
+      })
+    })
+  });
+  const httpPayload = await httpDiscovery.json();
+
+  if (!httpDiscovery.ok || httpPayload.status !== "available" || !httpPayload.tools?.includes("smoke_tool")) {
+    throw new Error(`MCP HTTP discovery smoke failed: HTTP ${httpDiscovery.status}`);
+  }
+
   console.log(`Package smoke passed on http://127.0.0.1:${port}`);
 } finally {
   if (server) {
@@ -87,12 +196,16 @@ try {
     await unlink(tarballPath).catch(() => undefined);
   }
 
+  if (httpMcpServer) {
+    await closeServer(httpMcpServer).catch(() => undefined);
+  }
+
   await rm(tempRoot, { recursive: true, force: true });
 }
 
 function getFreePort() {
   return new Promise((resolve, reject) => {
-    const probe = createServer();
+    const probe = createTcpServer();
     probe.on("error", reject);
     probe.listen(0, "127.0.0.1", () => {
       const address = probe.address();
@@ -104,6 +217,83 @@ function getFreePort() {
           reject(new Error("Unable to allocate a free local port."));
         }
       });
+    });
+  });
+}
+
+function createStdioMcpServerSource() {
+  return [
+    "let buffer = '';",
+    "process.stdin.setEncoding('utf8');",
+    "process.stdin.on('data', (chunk) => {",
+    "  buffer += chunk;",
+    "  let newline = buffer.indexOf('\\n');",
+    "  while (newline >= 0) {",
+    "    const line = buffer.slice(0, newline).trim();",
+    "    buffer = buffer.slice(newline + 1);",
+    "    if (line) handle(JSON.parse(line));",
+    "    newline = buffer.indexOf('\\n');",
+    "  }",
+    "});",
+    "function send(id, result) { process.stdout.write(JSON.stringify({ jsonrpc: '2.0', id, result }) + '\\n'); }",
+    "function handle(message) {",
+    "  if (message.method === 'initialize') {",
+    "    send(message.id, { protocolVersion: '2025-06-18', serverInfo: { name: 'stdio-smoke', version: '1.0.0' }, capabilities: { tools: {} } });",
+    "  } else if (message.method === 'tools/list') {",
+    "    send(message.id, { tools: [{ name: 'smoke_tool', description: 'Smoke tool', inputSchema: { type: 'object' } }] });",
+    "  } else if (message.method === 'tools/call') {",
+    "    send(message.id, { content: [{ type: 'text', text: 'stdio ok' }] });",
+    "  }",
+    "}"
+  ].join("\n");
+}
+
+function startHttpMcpServer(port) {
+  const server = createHttpServer(async (request, response) => {
+    const chunks = [];
+    for await (const chunk of request) {
+      chunks.push(chunk);
+    }
+    const payload = chunks.length ? JSON.parse(Buffer.concat(chunks).toString("utf8")) : {};
+
+    if (payload.method === "notifications/initialized") {
+      response.writeHead(202);
+      response.end();
+      return;
+    }
+
+    const result =
+      payload.method === "initialize"
+        ? {
+            protocolVersion: "2025-06-18",
+            serverInfo: { name: "http-smoke", version: "1.0.0" },
+            capabilities: { tools: {} }
+          }
+        : payload.method === "tools/list"
+          ? { tools: [{ name: "smoke_tool", description: "Smoke tool", inputSchema: { type: "object" } }] }
+          : { content: [{ type: "text", text: "http ok" }] };
+
+    response.writeHead(200, {
+      "Content-Type": "application/json",
+      "Mcp-Session-Id": "smoke-session"
+    });
+    response.end(JSON.stringify({ jsonrpc: "2.0", id: payload.id, result }));
+  });
+
+  return new Promise((resolveServer, rejectServer) => {
+    server.once("error", rejectServer);
+    server.listen(port, "127.0.0.1", () => resolveServer(server));
+  });
+}
+
+function closeServer(serverToClose) {
+  return new Promise((resolveClose, rejectClose) => {
+    serverToClose.close((error) => {
+      if (error) {
+        rejectClose(error);
+      } else {
+        resolveClose();
+      }
     });
   });
 }

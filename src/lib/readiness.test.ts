@@ -49,17 +49,17 @@ describe("readiness doctor", () => {
     expect(report.generatedAt).toBe("2026-07-03T12:00:00.000Z");
     expect(report.level).toBe("ready");
     expect(report.summary).toMatchObject({
-      total: 7,
-      ready: 7,
+      total: 8,
+      ready: 8,
       review: 0,
       blocked: 0
     });
     expect(report.totals).toMatchObject({
-      pass: 7,
+      pass: 8,
       review: 0,
       fail: 0
     });
-    expect(report.privacyGuarantees).toContain("Imported MCP commands are metadata-only and are not executed.");
+    expect(report.privacyGuarantees).toContain("MCP and local tool execution require Runtime mode through the loopback CLI.");
     expect(getCheck(report, "context")).toMatchObject({
       level: "ready",
       label: "Local context ready"

@@ -313,6 +313,12 @@ button:disabled {
   background: #ede9fe;
 }
 
+.mode-badge--runtime {
+  border-color: rgba(249, 115, 22, 0.34);
+  color: #9a3412;
+  background: #ffedd5;
+}
+
 .mode-switch {
   display: inline-flex;
   padding: 3px;
@@ -761,7 +767,7 @@ button:disabled {
 
 .mcp-server {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 10px;
   align-items: center;
   padding: 10px;
@@ -834,6 +840,12 @@ button:disabled {
 
 .mcp-panel .secondary-button {
   margin: 0 12px 12px;
+}
+
+.mcp-server > .secondary-button {
+  margin: 0;
+  min-height: 32px;
+  padding: 0 10px;
 }
 
 .doctor-panel {

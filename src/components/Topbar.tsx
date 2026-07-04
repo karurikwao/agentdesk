@@ -69,13 +69,22 @@ export function Topbar({
           >
             Cloud
           </button>
+          <button
+            type="button"
+            className={runMode === "runtime" ? "is-active" : ""}
+            onClick={() => onRunModeChange("runtime")}
+          >
+            Runtime
+          </button>
         </div>
         <span className={`mode-badge mode-badge--${runMode}`}>
           {runMode === "demo"
             ? "Simulated trace / no execution"
             : runMode === "ollama"
             ? "Live local / Ollama only"
-            : "BYOK cloud / model nodes only"}
+            : runMode === "cloud"
+              ? "BYOK cloud / model nodes only"
+              : "Loopback runtime / tools + MCP"}
         </span>
         <button
           type="button"
@@ -117,7 +126,9 @@ export function Topbar({
               ? "Run demo trace"
               : runMode === "ollama"
               ? "Run local Ollama"
-              : "Run BYOK cloud"}
+              : runMode === "cloud"
+                ? "Run BYOK cloud"
+                : "Run runtime"}
           </span>
         </button>
       </div>

@@ -20,7 +20,7 @@ export default defineConfig({
       ]
     : "list",
   use: {
-    baseURL: "http://127.0.0.1:4173",
+    baseURL: process.env.AGENTDESK_E2E_BASE_URL ?? "http://127.0.0.1:4173",
     screenshot: "only-on-failure",
     trace: "on-first-retry",
     video: "retain-on-failure"
@@ -30,11 +30,5 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] }
     }
-  ],
-  webServer: {
-    command: "npm run preview -- --strictPort",
-    url: "http://127.0.0.1:4173",
-    reuseExistingServer: false,
-    timeout: 120_000
-  }
+  ]
 });

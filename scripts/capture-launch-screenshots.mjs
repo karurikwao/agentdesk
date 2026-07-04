@@ -1,25 +1,19 @@
 import { spawn } from "node:child_process";
+import { createServer } from "node:net";
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { chromium } from "@playwright/test";
 
 const root = process.cwd();
 const assetsDir = resolve(root, "docs", "assets");
-const port = Number(process.env.AGENTDESK_SCREENSHOT_PORT ?? 4174);
+const port = Number(process.env.AGENTDESK_SCREENSHOT_PORT ?? await getFreePort());
 const baseUrl = `http://127.0.0.1:${port}`;
 
 await mkdir(assetsDir, { recursive: true });
 
-const serverCommand = process.platform === "win32"
-  ? `npx.cmd vite preview --host 127.0.0.1 --port ${port} --strictPort`
-  : "npx";
-const serverArgs = process.platform === "win32"
-  ? []
-  : ["vite", "preview", "--host", "127.0.0.1", "--port", String(port), "--strictPort"];
-const server = spawn(serverCommand, serverArgs, {
+const server = spawn(process.execPath, ["./bin/agentdesk.mjs", "--port", String(port), "--host", "127.0.0.1"], {
   cwd: root,
-  stdio: "pipe",
-  shell: process.platform === "win32"
+  stdio: "pipe"
 });
 
 try {
@@ -27,6 +21,7 @@ try {
   await captureScreenshots();
 } finally {
   server.kill();
+  await waitForExit(server, 5000).catch(() => undefined);
 }
 
 async function captureScreenshots() {
@@ -101,6 +96,38 @@ async function waitForServer(url) {
   }
 
   throw new Error(`Timed out waiting for ${url}: ${lastError instanceof Error ? lastError.message : "unknown error"}`);
+}
+
+function getFreePort() {
+  return new Promise((resolvePort, reject) => {
+    const probe = createServer();
+    probe.on("error", reject);
+    probe.listen(0, "127.0.0.1", () => {
+      const address = probe.address();
+      const selectedPort = typeof address === "object" && address ? address.port : undefined;
+      probe.close(() => {
+        if (selectedPort) {
+          resolvePort(selectedPort);
+        } else {
+          reject(new Error("Unable to allocate a free local port."));
+        }
+      });
+    });
+  });
+}
+
+function waitForExit(child, timeoutMs) {
+  if (child.exitCode !== null) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolveExit, reject) => {
+    const timeout = setTimeout(() => reject(new Error("Timed out waiting for screenshot server exit.")), timeoutMs);
+    child.once("exit", () => {
+      clearTimeout(timeout);
+      resolveExit();
+    });
+  });
 }
 
 function streamText(stream) {

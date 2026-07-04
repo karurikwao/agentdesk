@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0 - Launch candidate
+
+- Added loopback Runtime mode through the packaged CLI for local command nodes and MCP stdio/HTTP discovery.
+- Added runtime API routes for status checks, local command execution, MCP initialize/tools-list, optional tools-call, and remote MCP probing.
+- Added Runtime mode UI controls, Doctor runtime readiness, MCP live discovery buttons, and runtime trace artifacts.
+- Added LangGraph and CrewAI starter exports plus a trace bundle manifest to replay-session exports.
+- Added runtime client, adapter, bundle, and packaged CLI smoke coverage.
+
 ## 0.5.0 - Launch candidate
 
 - Added GitHub Pages launch site under `docs/index.html`.

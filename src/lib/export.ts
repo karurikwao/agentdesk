@@ -1,13 +1,19 @@
 import type { AgentWorkflow, TraceEvent } from "../types/workflow";
+import { createCrewAiExport, createLangGraphExport, createTraceBundle } from "./exportAdapters";
 import { createPortableWorkflow, createTraceSummary } from "./schema";
 
 export function createWorkflowExport(workflow: AgentWorkflow, trace: TraceEvent[]) {
   return {
     schema: "agentdesk.workflow.v1",
-    appVersion: "0.5.0",
+    appVersion: "0.6.0",
     exportedAt: new Date().toISOString(),
     portableWorkflow: sanitizeExportPayload(createPortableWorkflow(workflow)),
     traceSummary: sanitizeExportPayload(createTraceSummary(trace)),
+    traceBundle: sanitizeExportPayload(createTraceBundle(workflow, trace)),
+    adapters: sanitizeExportPayload({
+      langGraph: createLangGraphExport(workflow),
+      crewAi: createCrewAiExport(workflow)
+    }),
     workflow: sanitizeExportPayload(workflow),
     trace: sanitizeExportPayload(trace)
   };

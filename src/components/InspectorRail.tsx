@@ -30,6 +30,7 @@ import type {
   TraceEvent
 } from "../types/workflow";
 import type { LlmRuntimeConfig } from "../lib/llmConfig";
+import type { LocalRuntimeStatus } from "../lib/localRuntime";
 import type { OllamaReadinessStatus, ReadinessCheck, ReadinessReport } from "../lib/readiness";
 
 export type InspectorTab =
@@ -58,6 +59,7 @@ type InspectorRailProps = {
   graphIssues: GraphValidationIssue[];
   readinessReport: ReadinessReport;
   ollamaStatus: OllamaReadinessStatus;
+  runtimeStatus: LocalRuntimeStatus;
   runMode: RunMode;
   workflowName: string;
   cloudModelNodeCount: number;
@@ -80,8 +82,11 @@ type InspectorRailProps = {
   onArtifactSelect: (artifactId: string) => void;
   onIssueSelect: (issue: GraphValidationIssue) => void;
   onImportServers: (servers: ImportedMcpServer[]) => void;
+  onImportMcpConfigText: (configText: string) => void;
+  onDiscoverMcpServer: (server: ImportedMcpServer) => void;
   onCreateMcpNodes: () => void;
   onCheckOllama: () => void;
+  onCheckRuntime: () => void;
 };
 
 const tabs: Array<{ id: InspectorTab; label: string }> = [
@@ -111,6 +116,7 @@ export function InspectorRail({
   graphIssues,
   readinessReport,
   ollamaStatus,
+  runtimeStatus,
   runMode,
   workflowName,
   cloudModelNodeCount,
@@ -133,8 +139,11 @@ export function InspectorRail({
   onArtifactSelect,
   onIssueSelect,
   onImportServers,
+  onImportMcpConfigText,
+  onDiscoverMcpServer,
   onCreateMcpNodes,
-  onCheckOllama
+  onCheckOllama,
+  onCheckRuntime
 }: InspectorRailProps) {
   const selectedArtifact =
     artifacts.find((artifact) => artifact.id === selectedArtifactId) ?? artifacts[0];
@@ -198,9 +207,11 @@ export function InspectorRail({
           <DoctorPanel
             report={readinessReport}
             ollamaStatus={ollamaStatus}
+            runtimeStatus={runtimeStatus}
             sessionNotice={sessionNotice}
             sessionError={sessionError}
             onCheckOllama={onCheckOllama}
+            onCheckRuntime={onCheckRuntime}
           />
         ) : null}
         {activeTab === "llms" ? (
@@ -219,6 +230,8 @@ export function InspectorRail({
           <McpPanel
             importedServers={importedServers}
             onImport={onImportServers}
+            onImportConfigText={onImportMcpConfigText}
+            onDiscoverServer={onDiscoverMcpServer}
             onCreateNodes={onCreateMcpNodes}
           />
         ) : null}
@@ -257,7 +270,15 @@ function StartPanel({
       <PanelHeader
         eyebrow="Start here"
         title={workflowName}
-        detail={runMode === "cloud" ? "Cloud BYOK mode" : runMode === "ollama" ? "Local Ollama mode" : "Demo mode"}
+        detail={
+          runMode === "cloud"
+            ? "Cloud BYOK mode"
+            : runMode === "ollama"
+              ? "Local Ollama mode"
+              : runMode === "runtime"
+                ? "Local runtime mode"
+                : "Demo mode"
+        }
       />
       <div className="start-panel__body">
         <div className="start-card start-card--primary">
@@ -299,8 +320,8 @@ function StartPanel({
         <div className="start-note">
           <strong>Execution rules</strong>
           <span>
-            Demo is simulated. Ollama runs only local Ollama model nodes. Cloud runs only configured
-            OpenAI/Anthropic model nodes with your session key.
+            Demo is simulated. Ollama runs local Ollama model nodes. Cloud runs configured
+            OpenAI/Anthropic model nodes. Runtime uses the loopback CLI for local tools and MCP.
           </span>
         </div>
       </div>
@@ -320,15 +341,19 @@ function StatusTile({ label, value }: { label: string; value: string }) {
 function DoctorPanel({
   report,
   ollamaStatus,
+  runtimeStatus,
   sessionNotice,
   sessionError,
-  onCheckOllama
+  onCheckOllama,
+  onCheckRuntime
 }: {
   report: ReadinessReport;
   ollamaStatus: OllamaReadinessStatus;
+  runtimeStatus: LocalRuntimeStatus;
   sessionNotice: string;
   sessionError?: string;
   onCheckOllama: () => void;
+  onCheckRuntime: () => void;
 }) {
   const grouped = groupChecks(report.checks);
 
@@ -354,6 +379,19 @@ function DoctorPanel({
         <button type="button" className="secondary-button" onClick={onCheckOllama}>
           <RefreshCw size={14} />
           Check local Ollama
+        </button>
+      </div>
+      <div className="ollama-probe">
+        <div>
+          <strong>{runtimeStatus.available ? "Local runtime ready" : "Local runtime not connected"}</strong>
+          <span>{runtimeStatus.message}</span>
+          {runtimeStatus.capabilities.length > 0 ? (
+            <small>{runtimeStatus.capabilities.slice(0, 4).join(", ")}</small>
+          ) : null}
+        </div>
+        <button type="button" className="secondary-button" onClick={onCheckRuntime}>
+          <RefreshCw size={14} />
+          Check runtime
         </button>
       </div>
       <div className="doctor-groups">

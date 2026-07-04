@@ -10,6 +10,7 @@ export type ReadinessCategory =
   | "browser"
   | "context"
   | "ollama"
+  | "runtime"
   | "mcp"
   | "graph"
   | "env"
@@ -77,6 +78,13 @@ export type ReadinessReportInput = {
   context?: BrowserContextMetadata;
   ollama?: OllamaReachabilityMetadata;
   ollamaStatus?: OllamaReadinessStatus;
+  runtimeStatus?: {
+    available: boolean;
+    enabled: boolean;
+    version: string;
+    capabilities: string[];
+    message: string;
+  };
   env?: EnvKeyMetadata;
   generatedAt?: string;
 };
@@ -196,6 +204,7 @@ export function createReadinessChecks(input: ReadinessReportInput): ReadinessChe
     createBrowserCheck(browser),
     createContextCheck(context),
     createOllamaCheck(input, browser, ollama),
+    createRuntimeCheck(input),
     createMcpCheck(importedServers),
     createGraphCheck(graphIssues),
     createEnvCheck(input),
@@ -522,6 +531,59 @@ function createOllamaCheck(
   };
 }
 
+function createRuntimeCheck(input: ReadinessReportInput): ReadinessCheck {
+  const runtimeRelevant =
+    input.runMode === "runtime" ||
+    (input.importedServers?.length ?? 0) > 0 ||
+    input.workflow.nodes.some(
+      (node) =>
+        (node.data.provider === "local" || node.data.provider === "mcp") &&
+        Boolean(node.data.config?.command || node.data.config?.mcpServerId)
+    );
+  const runtime = input.runtimeStatus;
+  const metadata = {
+    runtimeRelevant,
+    available: runtime?.available ?? false,
+    enabled: runtime?.enabled ?? false,
+    version: runtime?.version,
+    capabilities: runtime?.capabilities ?? []
+  };
+
+  if (!runtimeRelevant) {
+    return {
+      id: "local-runtime",
+      category: "runtime",
+      level: "ready",
+      label: "Runtime optional",
+      detail: "The selected workflow does not require the loopback local runtime.",
+      hints: [],
+      metadata
+    };
+  }
+
+  if (runtime?.available && runtime.enabled) {
+    return {
+      id: "local-runtime",
+      category: "runtime",
+      level: "ready",
+      label: "Runtime ready",
+      detail: runtime.message,
+      hints: [],
+      metadata
+    };
+  }
+
+  return {
+    id: "local-runtime",
+    category: "runtime",
+    level: input.runMode === "runtime" ? "blocked" : "review",
+    label: "Runtime not connected",
+    detail: runtime?.message ?? "Start AgentDesk with the packaged CLI to enable local tool and MCP execution.",
+    hints: ["Run `npm run build` and `node ./bin/agentdesk.mjs --port 5173`, then open the local URL."],
+    metadata
+  };
+}
+
 function createMcpCheck(importedServers: ImportedMcpServer[]): ReadinessCheck {
   const counts = countLevels(importedServers.map((server) => server.readiness.level));
   const remoteCount = importedServers.filter((server) => server.type === "http" || server.type === "sse").length;
@@ -566,8 +628,8 @@ function createMcpCheck(importedServers: ImportedMcpServer[]): ReadinessCheck {
       category: "mcp",
       level: "review",
       label: "MCP import needs review",
-      detail: "Imported MCP metadata is usable for graphing, but execution or remote discovery still requires explicit approval.",
-      hints: ["Review local commands, remote URLs, env/header key names, and risk flags before future MCP execution."],
+      detail: "Imported MCP metadata is usable for graphing; live discovery and tool calls require Runtime mode and explicit approval.",
+      hints: ["Review local commands, remote URLs, env/header key names, and risk flags before Runtime mode execution."],
       metadata
     };
   }
@@ -576,8 +638,8 @@ function createMcpCheck(importedServers: ImportedMcpServer[]): ReadinessCheck {
     id: "mcp-import-readiness",
     category: "mcp",
     level: "ready",
-    label: "MCP metadata ready",
-    detail: "Imported MCP server metadata is complete enough for graphing and export.",
+    label: "MCP ready",
+    detail: "Imported MCP server metadata is complete enough for graphing, export, and Runtime mode discovery.",
     hints: [],
     metadata
   };
@@ -708,10 +770,10 @@ function createPrivacyCheck(input: ReadinessReportInput, ollama: OllamaReachabil
   const endpointIsLocal = isLocalUrl(endpoint);
   const liveOllamaRelevant = input.runMode === "ollama" || ollamaNodes.length > 0;
   const guarantees = [
-    "Live local execution is limited to Ollama model nodes on loopback endpoints.",
+    "Ollama execution is limited to loopback endpoints.",
     "Cloud-provider execution is BYOK and limited to configured OpenAI/Anthropic model nodes.",
-    "Imported MCP commands are metadata-only and are not executed.",
-    "Remote MCP URLs are not probed by the doctor.",
+    "MCP and local tool execution require Runtime mode through the loopback CLI.",
+    "Remote MCP URLs are probed only after explicit Runtime mode discovery.",
     "The readiness report records env/header key names, not secret values.",
     "Replay exports redact common secret values and private user path prefixes."
   ];
@@ -724,6 +786,7 @@ function createPrivacyCheck(input: ReadinessReportInput, ollama: OllamaReachabil
     mcpNodeCount: mcpNodes.length,
     importedMcpServerCount: importedServers.length,
     remoteMcpServerCount: remoteMcpServers.length,
+    runtimeAvailable: input.runtimeStatus?.available ?? false,
     directSensitiveConfig
   };
 
@@ -756,7 +819,7 @@ function createPrivacyCheck(input: ReadinessReportInput, ollama: OllamaReachabil
     category: "privacy",
     level: "ready",
     label: "Local/privacy guarantees ready",
-    detail: "The current configuration preserves AgentDesk's local-only and metadata-only execution contract.",
+    detail: "The current configuration keeps local/MCP execution behind explicit loopback Runtime mode and redacted exports.",
     hints: [],
     metadata
   };

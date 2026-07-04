@@ -60,6 +60,8 @@ export type ReplaySessionExport = {
   portableWorkflow: PortableWorkflow;
   trace: TraceEvent[];
   traceSummary: TraceSummary;
+  traceBundle: WorkflowExportPayload["traceBundle"];
+  adapters: WorkflowExportPayload["adapters"];
   artifacts: ReplaySessionArtifact[];
   costs: ReplaySessionCosts;
   validationIssues: GraphValidationIssue[];
@@ -143,6 +145,8 @@ export function createReplaySessionExport(
     portableWorkflow: hardenReplaySessionSanitization(workflowExport.portableWorkflow),
     trace: sanitizedTrace,
     traceSummary,
+    traceBundle: hardenReplaySessionSanitization(workflowExport.traceBundle),
+    adapters: hardenReplaySessionSanitization(workflowExport.adapters),
     artifacts: collectReplaySessionArtifacts(sanitizedTrace),
     costs: {
       totalCostUsd: traceSummary.totalCostUsd,
@@ -734,7 +738,7 @@ function normalizeRunStatus(value: RunStatus | undefined, trace: TraceEvent[]): 
 }
 
 function normalizeRunMode(value: RunMode | undefined): RunMode {
-  if (value === "demo" || value === "ollama" || value === "cloud") {
+  if (value === "demo" || value === "ollama" || value === "cloud" || value === "runtime") {
     return value;
   }
 

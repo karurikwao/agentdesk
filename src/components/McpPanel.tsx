@@ -6,10 +6,18 @@ import type { ImportedMcpServer } from "../types/workflow";
 type McpPanelProps = {
   importedServers: ImportedMcpServer[];
   onImport: (servers: ImportedMcpServer[]) => void;
+  onImportConfigText: (configText: string) => void;
+  onDiscoverServer: (server: ImportedMcpServer) => void;
   onCreateNodes: () => void;
 };
 
-export function McpPanel({ importedServers, onImport, onCreateNodes }: McpPanelProps) {
+export function McpPanel({
+  importedServers,
+  onImport,
+  onImportConfigText,
+  onDiscoverServer,
+  onCreateNodes
+}: McpPanelProps) {
   const [input, setInput] = useState(sampleMcpConfig);
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<Pick<McpImportReport, "sourceFormat" | "warnings"> | null>(
@@ -24,6 +32,7 @@ export function McpPanel({ importedServers, onImport, onCreateNodes }: McpPanelP
         sourceFormat: importReport.sourceFormat,
         warnings: importReport.warnings
       });
+      onImportConfigText(input);
       onImport(importReport.servers);
       setInput(importReport.redactedPreview);
     } catch (importError) {
@@ -77,13 +86,22 @@ export function McpPanel({ importedServers, onImport, onCreateNodes }: McpPanelP
               </div>
               <p>{server.readiness.detail}</p>
               {server.capabilities.tools.length > 0 ? (
-                <small>Hints: {server.capabilities.tools.join(", ")}</small>
+                <small>Tools: {server.capabilities.tools.join(", ")}</small>
               ) : null}
+              {server.runtime?.message ? <small>{server.runtime.message}</small> : null}
             </div>
             <span title="Environment keys only, never secret values">
               <KeyRound size={14} />
               {server.envKeys.length + server.headerKeys.length}
             </span>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => onDiscoverServer(server)}
+              disabled={server.readiness.level === "blocked"}
+            >
+              Discover
+            </button>
           </div>
         ))}
       </div>

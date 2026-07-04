@@ -13,7 +13,7 @@ export type ProviderKind = "ollama" | "openai" | "anthropic" | "local" | "mcp";
 
 export type RunStatus = "idle" | "running" | "paused" | "complete" | "failed";
 
-export type RunMode = "demo" | "ollama" | "cloud";
+export type RunMode = "demo" | "ollama" | "cloud" | "runtime";
 
 export type TraceArtifactType = "json" | "markdown" | "screenshot" | "stdout" | "stderr";
 
@@ -154,6 +154,12 @@ export type ImportedMcpServer = {
     tools: string[];
     resources: string[];
     prompts: string[];
-    discovery: "metadata-only" | "requires-approval" | "remote-url";
+    discovery: "metadata-only" | "requires-approval" | "remote-url" | "live-discovered";
+  };
+  runtime?: {
+    lastCheckedAt?: string;
+    status?: "available" | "failed";
+    message?: string;
+    serverInfo?: string;
   };
 };

@@ -270,8 +270,8 @@
           <h1>Replay the failure. Inspect every prompt, tool call, result, and artifact.</h1>
           <p>
             AgentDesk is the debugging surface developers reach for before production orchestration:
-            click-linked traces, failed-step replay, graph validation, MCP metadata import, local Ollama,
-            session-only BYOK model config, and redacted evidence exports.
+            click-linked traces, failed-step replay, graph validation, MCP import with live runtime
+            discovery, local Ollama, session-only BYOK model config, and redacted evidence exports.
           </p>
           <p class="safety-note">
             BYOK cloud calls are browser-direct and can be blocked by provider CORS or organization policy.
@@ -301,7 +301,7 @@
           </div>
           <div class="feature">
             <strong>Local and honest</strong>
-            <span>Ollama runs locally, cloud BYOK is session-only, MCP imports are metadata-only, and simulated steps are labeled.</span>
+            <span>Ollama runs locally, cloud BYOK is session-only, and local/MCP execution requires the loopback CLI Runtime mode.</span>
           </div>
         </div>
       </section>
@@ -336,7 +336,7 @@
             <h2>Everything needed for a GitHub launch.</h2>
             <p>
               The repo now includes this GitHub Pages landing page, launch copy, screenshot assets,
-              verification gates, CI, package smoke checks, and deployment notes.
+              Runtime mode notes, verification gates, CI, package smoke checks, and deployment notes.
             </p>
           </div>
           <a class="button" href="./project-launch.html">Read Launch Details</a>

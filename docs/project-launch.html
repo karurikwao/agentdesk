@@ -251,8 +251,8 @@
         <p>
           AgentDesk gives developers a local surface to replay failed steps, click between traces
           and graph nodes, inspect prompts/tool calls/results/artifacts, validate graph health,
-          import MCP metadata, run local Ollama model nodes, and configure session-only BYOK
-          OpenAI/Anthropic model nodes.
+          import MCP configs, discover MCP tools through Runtime mode, run local command nodes,
+          run local Ollama model nodes, and configure session-only BYOK OpenAI/Anthropic model nodes.
         </p>
       </section>
 
@@ -291,7 +291,7 @@
           </div>
           <div class="card">
             <h3>Honest execution modes</h3>
-            <p>Ollama model nodes can run locally, OpenAI/Anthropic model nodes can run with session-only BYOK keys, and MCP/local tool steps stay metadata-only or simulated unless supported.</p>
+            <p>Ollama model nodes can run locally, OpenAI/Anthropic model nodes can run with session-only BYOK keys, and MCP/local tool steps run through the loopback CLI Runtime mode.</p>
           </div>
         </div>
       </section>
@@ -322,7 +322,7 @@
         <div class="eyebrow">Launch copy</div>
         <pre>Show HN: AgentDesk, a local visual debugger for AI agent workflows
 
-I built AgentDesk because most agent workflow tools make the graph easy to draw but the failed run hard to explain. AgentDesk gives you a local graph canvas, click-linked traces, failed-step replay, prompt/tool/result inspection, artifact viewing, graph validation, MCP config import with redaction, local Ollama model-node execution, BYOK OpenAI/Anthropic model nodes, and portable replay-session exports.
+I built AgentDesk because most agent workflow tools make the graph easy to draw but the failed run hard to explain. AgentDesk gives you a local graph canvas, click-linked traces, failed-step replay, prompt/tool/result inspection, artifact viewing, graph validation, MCP config import with redaction, loopback Runtime mode for local tools/MCP discovery, local Ollama model-node execution, BYOK OpenAI/Anthropic model nodes, and portable replay-session exports.
 
 Browser-direct cloud calls are BYOK/session-only, may be blocked by provider CORS or organization policy, and production apps should use a backend proxy. BYOK prompts and responses become trace evidence; API keys are not exported.</pre>
       </section>
@@ -331,8 +331,8 @@ Browser-direct cloud calls are BYOK/session-only, may be blocked by provider COR
         <div class="card notice">
           <h3>Known limits to say out loud</h3>
           <ul>
-            <li>MCP command execution is not enabled yet.</li>
-            <li>Local tool steps remain simulated unless explicitly supported.</li>
+            <li>Static hosted demos cannot spawn local processes; use the packaged CLI for Runtime mode.</li>
+            <li>Shell commands stay blocked unless explicitly enabled before CLI launch.</li>
             <li>Browser-direct OpenAI/Anthropic calls can be blocked by provider CORS, browser policy, or organization settings.</li>
             <li>Production apps should proxy cloud model calls through a backend secret boundary.</li>
             <li>BYOK prompts and responses become trace/debug/artifact evidence, though API keys are excluded from exports.</li>

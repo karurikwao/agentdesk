@@ -10,6 +10,14 @@ import { createCostBreakdown, createTraceEvent, getRunOrder, validateWorkflowGra
 import { checkOllamaStatus, runOllamaNode } from "./lib/ollama";
 import { runCloudLlmNode } from "./lib/cloudLlm";
 import {
+  checkLocalRuntime,
+  createRuntimeUnavailableEvent,
+  discoverMcpServer,
+  runRuntimeNode,
+  type LocalRuntimeStatus
+} from "./lib/localRuntime";
+import { sampleMcpConfig } from "./lib/mcp";
+import {
   defaultLlmRuntimeConfig,
   hasUsableCloudConfig,
   isCloudLlmProvider,
@@ -62,6 +70,14 @@ export function App() {
   const [selectedArtifactId, setSelectedArtifactId] = useState<string | undefined>();
   const [activeInspectorTab, setActiveInspectorTab] = useState<InspectorTab>("start");
   const [importedServers, setImportedServers] = useState<ImportedMcpServer[]>([]);
+  const [mcpConfigText, setMcpConfigText] = useState(sampleMcpConfig);
+  const [runtimeStatus, setRuntimeStatus] = useState<LocalRuntimeStatus>({
+    available: false,
+    enabled: false,
+    version: "unchecked",
+    capabilities: [],
+    message: "Local runtime has not been checked yet."
+  });
   const [ollamaStatus, setOllamaStatus] = useState<OllamaReadinessStatus>(defaultOllamaStatus);
   const [llmConfig, setLlmConfig] = useState<LlmRuntimeConfig>(defaultLlmRuntimeConfig);
   const [sessionNotice, setSessionNotice] = useState("No replay session imported yet.");
@@ -112,9 +128,10 @@ export function App() {
         importedServers,
         runMode,
         capabilities: browserCapabilities,
-        ollamaStatus
+        ollamaStatus,
+        runtimeStatus
       }),
-    [browserCapabilities, graphIssues, importedServers, ollamaStatus, runMode, runtimeWorkflow]
+    [browserCapabilities, graphIssues, importedServers, ollamaStatus, runMode, runtimeStatus, runtimeWorkflow]
   );
   const selectedTraceEvent = useMemo(
     () => trace.find((event) => event.id === selectedTraceEventId),
@@ -196,7 +213,7 @@ export function App() {
     setInspectedNodeId(undefined);
     setSelectedTraceEventId(undefined);
     setSelectedArtifactId(undefined);
-    setActiveInspectorTab(mode === "cloud" ? "llms" : "trace");
+    setActiveInspectorTab(mode === "cloud" ? "llms" : mode === "runtime" ? "doctor" : "trace");
     setTrace([]);
     setSessionError(undefined);
   }
@@ -248,6 +265,7 @@ export function App() {
           config: {
             type: server.type,
             command: server.command,
+            mcpServerId: server.id,
             envKeys: server.envKeys.join(", "),
             headerKeys: server.headerKeys.join(", "),
             riskFlags: server.riskFlags.join(", "),
@@ -373,11 +391,19 @@ export function App() {
       }
 
       const runsLocallyThroughOllama =
-        runMode === "ollama" && node.data.kind === "model" && node.data.provider === "ollama";
+        (runMode === "ollama" || runMode === "runtime") &&
+        node.data.kind === "model" &&
+        node.data.provider === "ollama";
       const runsThroughCloudProvider =
-        runMode === "cloud" &&
+        (runMode === "cloud" || runMode === "runtime") &&
         node.data.kind === "model" &&
         hasUsableCloudConfig(llmConfig, node.data.provider);
+      const runsThroughLocalRuntime = runMode === "runtime" && canRunThroughLocalRuntime(node);
+      const missingRuntimeModelConfig =
+        runMode === "runtime" &&
+        node.data.kind === "model" &&
+        isCloudLlmProvider(node.data.provider) &&
+        !hasUsableCloudConfig(llmConfig, node.data.provider);
       const event = runsLocallyThroughOllama
         ? await runOllamaNode(runtimeWorkflow, node, index, runId, {
             signal: abortController.signal
@@ -386,6 +412,16 @@ export function App() {
         ? await runCloudLlmNode(runtimeWorkflow, node, index, runId, llmConfig, {
             signal: abortController.signal
           })
+        : runsThroughLocalRuntime
+        ? await runRuntimeStep(runtimeWorkflow, node, index, runId, abortController, mcpConfigText)
+        : missingRuntimeModelConfig
+        ? createRuntimeUnavailableEvent(
+            runtimeWorkflow,
+            node,
+            index,
+            runId,
+            `${node.data.label} is a cloud model node without a matching BYOK provider configuration. Add an API key in LLMs or switch to Demo mode.`
+          )
         : markSimulatedIfLiveMode(createTraceEvent(runtimeWorkflow, nodeId, index, runId), runMode);
 
       if (runToken.current !== token) {
@@ -578,6 +614,56 @@ export function App() {
     setActiveInspectorTab("doctor");
   }
 
+  async function probeLocalRuntime() {
+    const status = await checkLocalRuntime();
+
+    setRuntimeStatus(status);
+    setSessionNotice(status.message);
+    setSessionError(status.available ? undefined : status.message);
+    setActiveInspectorTab("doctor");
+  }
+
+  async function discoverImportedMcp(server: ImportedMcpServer) {
+    const result = await discoverMcpServer(server, mcpConfigText);
+
+    setImportedServers((currentServers) =>
+      currentServers.map((candidate) =>
+        candidate.id === server.id
+          ? {
+              ...candidate,
+              readiness:
+                result.status === "available"
+                  ? {
+                      level: "ready",
+                      label: "Live discovered",
+                      detail: result.message
+                    }
+                  : {
+                      level: "review",
+                      label: "Discovery failed",
+                      detail: result.message
+                    },
+              capabilities: {
+                tools: result.tools,
+                resources: result.resources,
+                prompts: result.prompts,
+                discovery: result.status === "available" ? "live-discovered" : candidate.capabilities.discovery
+              },
+              runtime: {
+                lastCheckedAt: new Date().toISOString(),
+                status: result.status,
+                message: result.message,
+                serverInfo: result.serverInfo
+              }
+            }
+          : candidate
+      )
+    );
+    setSessionNotice(`${server.id}: ${result.message}`);
+    setSessionError(result.status === "available" ? undefined : result.message);
+    setActiveInspectorTab("mcp");
+  }
+
   return (
     <ReactFlowProvider>
       <div className="app-shell">
@@ -642,6 +728,7 @@ export function App() {
                 graphIssues={graphIssues}
                 readinessReport={readinessReport}
                 ollamaStatus={ollamaStatus}
+                runtimeStatus={runtimeStatus}
                 runMode={runMode}
                 workflowName={selectedWorkflow.name}
                 cloudModelNodeCount={cloudModelNodeCount}
@@ -667,8 +754,11 @@ export function App() {
                 }}
                 onIssueSelect={inspectGraphIssue}
                 onImportServers={setImportedServers}
+                onImportMcpConfigText={setMcpConfigText}
+                onDiscoverMcpServer={discoverImportedMcp}
                 onCreateMcpNodes={addImportedMcpNodes}
                 onCheckOllama={probeOllama}
+                onCheckRuntime={probeLocalRuntime}
               />
             </div>
           </div>
@@ -737,11 +827,14 @@ function markSimulatedIfLiveMode(event: TraceEvent, runMode: RunMode): TraceEven
     return event;
   }
 
-  const modeLabel = runMode === "ollama" ? "Ollama mode" : "Cloud BYOK mode";
+  const modeLabel =
+    runMode === "ollama" ? "Ollama mode" : runMode === "cloud" ? "Cloud BYOK mode" : "Runtime mode";
   const fallback =
     runMode === "ollama"
       ? "Simulated step only; only Ollama model nodes execute locally in Ollama mode."
-      : "Simulated step only; only configured OpenAI/Anthropic model nodes execute in Cloud BYOK mode.";
+      : runMode === "cloud"
+        ? "Simulated step only; only configured OpenAI/Anthropic model nodes execute in Cloud BYOK mode."
+        : "Runtime metadata step; model and external tool execution require a configured local runtime adapter.";
 
   return {
     ...event,
@@ -751,6 +844,38 @@ function markSimulatedIfLiveMode(event: TraceEvent, runMode: RunMode): TraceEven
       ? `${fallback} ${event.outputPreview}`
       : fallback
   };
+}
+
+function canRunThroughLocalRuntime(node: AgentFlowNode) {
+  return (
+    node.data.provider === "local" ||
+    node.data.provider === "mcp" ||
+    (node.data.kind !== "model" && node.data.kind !== "trigger")
+  );
+}
+
+async function runRuntimeStep(
+  workflow: AgentWorkflow,
+  node: AgentFlowNode,
+  index: number,
+  runId: string,
+  abortController: AbortController,
+  mcpConfigText: string
+) {
+  try {
+    return await runRuntimeNode(workflow, node, index, runId, {
+      mcpConfigText: node.data.provider === "mcp" ? mcpConfigText : undefined,
+      signal: abortController.signal
+    });
+  } catch (error) {
+    return createRuntimeUnavailableEvent(
+      workflow,
+      node,
+      index,
+      runId,
+      error instanceof Error ? error.message : "Local runtime execution failed."
+    );
+  }
 }
 
 function createCancelledTraceEvent(node: AgentFlowNode, runId: string): TraceEvent {
