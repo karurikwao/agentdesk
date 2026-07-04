@@ -5,9 +5,15 @@ const root = process.cwd();
 const pkg = readJson("package.json");
 const lock = readJson("package-lock.json");
 const version = String(pkg.version);
+const packageName = String(pkg.name);
 const failures = [];
 
+expect(lock.name === packageName, `package-lock root name ${lock.name} does not match package ${packageName}.`);
 expect(lock.version === version, `package-lock root version ${lock.version} does not match package ${version}.`);
+expect(
+  lock.packages?.[""]?.name === packageName,
+  `package-lock package entry name ${lock.packages?.[""]?.name} does not match package ${packageName}.`
+);
 expect(
   lock.packages?.[""]?.version === version,
   `package-lock package entry version ${lock.packages?.[""]?.version} does not match package ${version}.`
@@ -99,7 +105,7 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log(`Release readiness verified for agentdesk@${version}`);
+console.log(`Release readiness verified for ${packageName}@${version}`);
 
 function readJson(path) {
   return JSON.parse(readText(path));

@@ -3,6 +3,7 @@
 **A local visual debugger for AI agent runs: replay the failure, inspect every prompt/tool/result, and export redacted evidence before you wire in live tools.**
 
 [![CI](https://github.com/karurikwao/agentdesk/actions/workflows/ci.yml/badge.svg)](https://github.com/karurikwao/agentdesk/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/%40papaplus%2Fagentdesk?color=0ea5e9&label=npm)](https://www.npmjs.com/package/@papaplus/agentdesk)
 [![License: MIT](https://img.shields.io/badge/license-MIT-violet)](./LICENSE)
 [![Node 20.19+](https://img.shields.io/badge/node-20.19%2B-cyan)](./package.json)
 
@@ -51,7 +52,20 @@ Use it when you need to explain or reproduce an agent run locally. Use a workflo
 
 ## Launch Install Paths
 
-The npm package name `agentdesk` is currently available but unpublished. Until the npm publish step happens, use the source install:
+Fastest path:
+
+```bash
+npx --yes --package=@papaplus/agentdesk agentdesk --port 5173
+```
+
+The executable is still `agentdesk`, so global installs work as expected:
+
+```bash
+npm install -g @papaplus/agentdesk
+agentdesk --port 5173
+```
+
+Source install:
 
 ```bash
 git clone https://github.com/karurikwao/agentdesk.git
@@ -65,12 +79,6 @@ For the packaged local runtime:
 ```bash
 npm run build
 node ./bin/agentdesk.mjs --port 5173
-```
-
-After npm publish, the intended quick path is:
-
-```bash
-npx agentdesk --port 5173
 ```
 
 ## What Works Today

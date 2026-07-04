@@ -43,7 +43,7 @@
 - Confirm repo CI is passing on `main`.
 - Create `v0.6.1` GitHub release.
 - Verify package dry run.
-- Publish npm package only after final name decision; `agentdesk` returned npm 404/unpublished on July 4, 2026.
+- Publish npm package as `@papaplus/agentdesk`; npm blocked the unscoped `agentdesk` name as too similar to `agent-desk` on July 4, 2026.
 - Seed five good first issues from `docs/GOOD_FIRST_ISSUES.md`.
 - Enable GitHub Discussions before broad launch.
 

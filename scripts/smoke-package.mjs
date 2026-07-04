@@ -8,6 +8,7 @@ import { createServer as createHttpServer } from "node:http";
 import { createServer as createTcpServer } from "node:net";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
+const packageName = "@papaplus/agentdesk";
 const npmExecPath = process.env.npm_execpath;
 const npmCommand = npmExecPath ? process.execPath : process.platform === "win32" ? "npm.cmd" : "npm";
 const tempRoot = await mkdtemp(join(tmpdir(), "agentdesk-package-smoke-"));
@@ -55,7 +56,7 @@ try {
     throw new Error(`installed agentdesk command failed:\n${formatResult(help)}`);
   }
 
-  const cliPath = join(tempRoot, "node_modules", "agentdesk", "bin", "agentdesk.mjs");
+  const cliPath = join(tempRoot, "node_modules", ...packageName.split("/"), "bin", "agentdesk.mjs");
   const port = String(await getFreePort());
   const output = { stdout: "", stderr: "" };
   server = spawn(process.execPath, [cliPath, "--port", port, "--host", "127.0.0.1"], {

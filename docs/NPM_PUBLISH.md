@@ -1,6 +1,6 @@
 # NPM Publish Runbook
 
-The package name `agentdesk` returned 404/unpublished on July 4, 2026. Publish only from a clean, green `main` commit.
+The unscoped package name `agentdesk` was blocked by npm on July 4, 2026 because it is too similar to `agent-desk`. Publish as the scoped package `@papaplus/agentdesk` from a clean, green `main` commit.
 
 ## Preflight
 
@@ -23,13 +23,13 @@ npm login --auth-type=web
 
 ```bash
 npm publish --access public
-npm view agentdesk version
+npm view @papaplus/agentdesk version
 ```
 
 ## Post-Publish Updates
 
-1. Replace README/package docs that say `agentdesk` is unpublished.
-2. Move `npx agentdesk --port 5173` to the top Quick Start.
+1. Verify `npx --yes --package=@papaplus/agentdesk agentdesk --port 5173`.
+2. Confirm the npm badge resolves.
 3. Add the npm version badge.
 4. Create a small patch release if package docs need correction.
 

@@ -27,11 +27,10 @@ npm publish --dry-run --access public
 
 ## NPM Status
 
-The package name `agentdesk` returned 404/unpublished on July 4, 2026. Publishing still requires an authenticated npm account:
+The unscoped package name `agentdesk` returned 404/unpublished during the initial check on July 4, 2026, but npm later blocked the publish because the name is too similar to `agent-desk`. Use the scoped package name introduced in v0.6.3:
 
 ```bash
-npm login --auth-type=web
-npm publish --access public
+npx --yes --package=@papaplus/agentdesk agentdesk --port 5173
 ```
 
 ## Links

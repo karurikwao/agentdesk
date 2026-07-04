@@ -37,10 +37,10 @@ Open `http://127.0.0.1:5173`, check the Doctor tab, then switch to Runtime mode 
 ### After NPM Publish
 
 ```bash
-npx agentdesk --port 5173
+npx --yes --package=@papaplus/agentdesk agentdesk --port 5173
 ```
 
-The package name `agentdesk` was checked against the public npm registry on July 4, 2026 and returned 404/unpublished at that time.
+The unscoped package name `agentdesk` was later blocked by npm as too similar to `agent-desk`; the launch package is scoped as `@papaplus/agentdesk`.
 
 ## Verification
 

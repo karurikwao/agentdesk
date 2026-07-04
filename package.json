@@ -1,6 +1,6 @@
 {
-  "name": "agentdesk",
-  "version": "0.6.2",
+  "name": "@papaplus/agentdesk",
+  "version": "0.6.4",
   "description": "Local visual debugger for AI agent runs: replay failures, inspect prompts/tools/results, and export redacted evidence.",
   "type": "module",
   "packageManager": "npm@11.13.0",
@@ -59,6 +59,8 @@
     "docs/PROJECT_LAUNCH.md",
     "docs/RELEASE_v0.6.1.md",
     "docs/RELEASE_v0.6.2.md",
+    "docs/RELEASE_v0.6.3.md",
+    "docs/RELEASE_v0.6.4.md",
     "docs/GOOD_FIRST_ISSUES.md",
     "docs/KILLER_DEMO.md",
     "docs/NPM_PUBLISH.md",

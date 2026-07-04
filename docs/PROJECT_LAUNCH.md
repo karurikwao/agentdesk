@@ -9,7 +9,7 @@ AgentDesk turns failed AI agent runs into clickable, replayable evidence bundles
 - Live app: https://agentdesk-clf.pages.dev/
 - GitHub repo: https://github.com/karurikwao/agentdesk
 - GitHub Pages launch page: https://karurikwao.github.io/agentdesk/
-- NPM package name: `agentdesk` (available on July 4, 2026; unpublished until final publish decision)
+- NPM package: `@papaplus/agentdesk` with the `agentdesk` executable.
 
 ## Screenshots
 

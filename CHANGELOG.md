@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.4 - Portable npx command
+
+- Updated README and release docs to use `npx --yes --package=@papaplus/agentdesk agentdesk --port 5173`, which works on Windows and other shells for the scoped package.
+
+## 0.6.3 - Scoped npm package
+
+- Published under the scoped package name `@papaplus/agentdesk` after npm blocked the unscoped `agentdesk` name as too similar to `agent-desk`.
+- Kept the installed executable name as `agentdesk`.
+- Updated README, launch docs, publish runbook, and package smoke coverage for the scoped install path.
+
 ## 0.6.2 - Launch conversion polish
 
 - Made Failure Replay Lab the default workflow so the live demo opens on the strongest debugging story.
