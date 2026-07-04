@@ -32,10 +32,10 @@
 - Cloud-provider nodes are simulated; OpenAI/Anthropic execution is not enabled yet.
 - There is no persistent project storage yet.
 
-## Launch-Day Checklist
+## Public Launch Checklist
 
-- Record a 10-second README GIF.
-- Publish repo with CI passing.
+- Keep the current README screenshot or replace it with a 10-second GIF.
+- Confirm repo CI is passing on `main`.
 - Create `v0.1.0` GitHub release.
 - Verify package dry run.
 - Reserve/publish npm package only after final name decision.

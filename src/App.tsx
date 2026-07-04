@@ -110,8 +110,9 @@ export function App() {
 
   function addImportedMcpNodes() {
     const importedNodes: AgentFlowNode[] = importedServers.map((server, index) => {
-      const serverDescription =
+      const serverTarget =
         server.url ?? (`${server.command} ${server.args.join(" ")}`.trim() || "Imported MCP server");
+      const serverDescription = `Metadata-only import (${server.readiness.label}): ${serverTarget}`;
 
       return {
         id: `mcp-${server.id}-${Date.now()}`,

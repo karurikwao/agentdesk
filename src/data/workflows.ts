@@ -4,9 +4,9 @@ export const demoWorkflows: AgentWorkflow[] = [
   {
     id: "repo-qa",
     name: "Repo QA Swarm",
-    tagline: "Agentic code review with replayable traces",
+    tagline: "Simulated agentic code review with replayable traces",
     description:
-      "Route a repository audit through a planner, browser checker, test runner, and final reviewer.",
+      "Simulate routing a repository audit through a planner, browser checker, test runner, and final reviewer.",
     nodes: [
       {
         id: "trigger",
@@ -15,7 +15,7 @@ export const demoWorkflows: AgentWorkflow[] = [
         data: {
           label: "Repo Trigger",
           kind: "trigger",
-          description: "Watch a branch or PR and start a local run."
+          description: "Simulate a branch or PR trigger for a local demo run."
         }
       },
       {
@@ -26,7 +26,7 @@ export const demoWorkflows: AgentWorkflow[] = [
           label: "Planning Agent",
           kind: "model",
           provider: "anthropic",
-          description: "Break the audit into isolated verification tasks."
+          description: "Simulate breaking the audit into isolated verification tasks."
         }
       },
       {
@@ -37,7 +37,7 @@ export const demoWorkflows: AgentWorkflow[] = [
           label: "Browser MCP",
           kind: "tool",
           provider: "mcp",
-          description: "Planned browser tool step for screenshots and accessibility hints."
+          description: "Metadata-only browser MCP step for screenshots and accessibility hints."
         }
       },
       {
@@ -48,7 +48,7 @@ export const demoWorkflows: AgentWorkflow[] = [
           label: "Test Runner",
           kind: "tool",
           provider: "local",
-          description: "Planned local tool step for unit, type, and smoke checks."
+          description: "Simulated local tool step for unit, type, and smoke checks."
         }
       },
       {
@@ -59,7 +59,7 @@ export const demoWorkflows: AgentWorkflow[] = [
           label: "Evidence Store",
           kind: "memory",
           provider: "local",
-          description: "Persist findings, trace artifacts, and terminal summaries."
+          description: "Simulate storing findings, trace artifacts, and terminal summaries."
         }
       },
       {
@@ -70,7 +70,7 @@ export const demoWorkflows: AgentWorkflow[] = [
           label: "Final Reviewer",
           kind: "output",
           provider: "openai",
-          description: "Summarize risks, missing tests, and launch readiness."
+          description: "Simulate summarizing risks, missing tests, and launch readiness."
         }
       }
     ],
@@ -108,7 +108,7 @@ export const demoWorkflows: AgentWorkflow[] = [
           label: "Extractor",
           kind: "tool",
           provider: "local",
-          description: "Chunk and normalize source material."
+          description: "Simulate chunking and normalizing source material."
         }
       },
       {
@@ -203,7 +203,7 @@ export const demoWorkflows: AgentWorkflow[] = [
           label: "Filesystem MCP",
           kind: "tool",
           provider: "mcp",
-          description: "Planned scoped file access through an MCP server."
+          description: "Metadata-only scoped file access through an MCP server."
         }
       },
       {
@@ -225,7 +225,7 @@ export const demoWorkflows: AgentWorkflow[] = [
           label: "Shell Guard",
           kind: "tool",
           provider: "local",
-          description: "Planned command review step before any future execution."
+          description: "Simulated command review step before any future execution."
         }
       },
       {
@@ -235,7 +235,7 @@ export const demoWorkflows: AgentWorkflow[] = [
         data: {
           label: "Replay Report",
           kind: "output",
-          description: "Shareable trace with prompts, calls, outputs, and artifacts."
+          description: "Shareable simulated trace with prompts, calls, outputs, and artifacts."
         }
       }
     ],
@@ -251,9 +251,9 @@ export const demoWorkflows: AgentWorkflow[] = [
   {
     id: "failure-replay",
     name: "Failure Replay Lab",
-    tagline: "Debug a failed MCP tool step without raw log archaeology",
+    tagline: "Debug a simulated failed MCP tool step without raw log archaeology",
     description:
-      "Watch a planned browser tool fail, preserve the trace, and inspect the replay artifact.",
+      "Watch a simulated browser MCP step fail, preserve the trace, and inspect the replay artifact.",
     nodes: [
       {
         id: "intent",
@@ -299,7 +299,7 @@ export const demoWorkflows: AgentWorkflow[] = [
           label: "Failure Artifact",
           kind: "memory",
           provider: "local",
-          description: "Capture screenshot, command, stderr, and prior prompt context."
+          description: "Simulate capturing screenshot, command, stderr, and prior prompt context."
         }
       },
       {
@@ -326,26 +326,26 @@ export const paletteKinds = [
   {
     kind: "model",
     label: "Model",
-    description: "Ollama, OpenAI, Anthropic, or local adapter"
+    description: "Ollama live model or simulated cloud/local adapter"
   },
   {
     kind: "tool",
     label: "MCP Tool",
-    description: "Browser, filesystem, shell, database, or custom MCP server"
+    description: "Metadata-only browser, filesystem, shell, database, or custom MCP server"
   },
   {
     kind: "router",
     label: "Router",
-    description: "Route by confidence, cost, provider, or safety policy"
+    description: "Simulate routing by confidence, cost, provider, or safety policy"
   },
   {
     kind: "memory",
     label: "Memory",
-    description: "Store artifacts, context, cache, or evidence"
+    description: "Simulate storing artifacts, context, cache, or evidence"
   },
   {
     kind: "output",
     label: "Output",
-    description: "Markdown, JSON, code patch, report, or webhook"
+    description: "Simulated Markdown, JSON, code patch, report, or outbound payload"
   }
 ] as const;

@@ -60,6 +60,7 @@ describe("workflow export", () => {
     expect(serialized).not.toContain("ada");
     expect(serialized).not.toContain("user:pass");
     expect(serialized).not.toContain("password=secret");
+    expect(serialized).not.toContain("#token");
     expect(serialized).not.toContain("secret-token");
     expect(serialized).not.toContain("sk-1234567890abcdef");
   });

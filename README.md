@@ -8,7 +8,7 @@
 
 AgentDesk gives developers a graph canvas, replayable traces, MCP config import, safe redaction, local Ollama execution, simulated OpenAI/Anthropic-style steps, and portable workflow exports. It is built for the moment when you ask: what actually happened inside this agent run?
 
-[Live demo](https://agentdesk-clf.pages.dev/) | [Cloudflare deployment](https://0a546b03.agentdesk-clf.pages.dev/) | [GitHub repo](https://github.com/karurikwao/agentdesk)
+[Live demo](https://agentdesk-clf.pages.dev/) | [Cloudflare Pages](https://agentdesk-clf.pages.dev/) | [GitHub repo](https://github.com/karurikwao/agentdesk)
 
 ![AgentDesk workflow canvas](./docs/assets/agentdesk-workflow-run.png)
 
@@ -93,7 +93,7 @@ The CLI serves the built `dist` app from localhost with conservative static-serv
 - Ollama calls happen from the browser to `127.0.0.1:11434`; CORS settings may need adjustment in some local Ollama setups.
 - Workflow execution is still linear/topological; advanced branching and joins are schema-ready but not fully interactive.
 - Project storage is export-only for now; there is no persistent workspace database.
-- The README currently uses a screenshot; a short GIF should be recorded before a public launch push.
+- The README uses a current screenshot; an optional short GIF can replace it in a later promo pass.
 
 ## Roadmap
 
