@@ -25,8 +25,8 @@ if (args.has("help")) {
   process.exit(0);
 }
 
-const port = validatePort(args.get("port") || process.env.AGENTDESK_PORT || "5173");
-const host = validateHost(args.get("host") || process.env.AGENTDESK_HOST || "127.0.0.1");
+const port = validatePort(args.get("port") ?? process.env.AGENTDESK_PORT ?? "5173");
+const host = validateHost(args.get("host") ?? process.env.AGENTDESK_HOST ?? "127.0.0.1");
 
 if (!existsSync(join(distRoot, "index.html"))) {
   console.error("AgentDesk dist build not found. Run `npm run build` before starting the packaged CLI.");
