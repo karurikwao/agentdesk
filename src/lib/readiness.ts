@@ -708,8 +708,8 @@ function createPrivacyCheck(input: ReadinessReportInput, ollama: OllamaReachabil
   const endpointIsLocal = isLocalUrl(endpoint);
   const liveOllamaRelevant = input.runMode === "ollama" || ollamaNodes.length > 0;
   const guarantees = [
-    "Live model execution is limited to local Ollama model nodes.",
-    "Cloud-provider nodes are simulated in this release.",
+    "Live local execution is limited to Ollama model nodes on loopback endpoints.",
+    "Cloud-provider execution is BYOK and limited to configured OpenAI/Anthropic model nodes.",
     "Imported MCP commands are metadata-only and are not executed.",
     "Remote MCP URLs are not probed by the doctor.",
     "The readiness report records env/header key names, not secret values.",

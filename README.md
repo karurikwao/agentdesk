@@ -8,7 +8,7 @@
 
 AgentDesk answers the 10-second question: **what actually happened inside this agent run, and can I replay or share the evidence?**
 
-It gives developers a graph canvas, click-linked traces, node-level prompt/tool/result inspection, failed-step replay, artifact viewing, metadata-only MCP imports, safe redaction, local Ollama model-node execution, simulated OpenAI/Anthropic-style steps, and portable workflow exports.
+It gives developers a graph canvas, a first-run Start view, click-linked traces, node-level prompt/tool/result inspection, failed-step replay, artifact viewing, metadata-only MCP imports, safe redaction, local Ollama model-node execution, session-only BYOK OpenAI/Anthropic model execution, and portable workflow exports.
 
 [Live demo](https://agentdesk-clf.pages.dev/) | [Cloudflare Pages](https://agentdesk-clf.pages.dev/) | [GitHub repo](https://github.com/karurikwao/agentdesk)
 
@@ -26,23 +26,25 @@ Use it when you need to explain or reproduce an agent run locally. Use a workflo
 2. Click `Run demo trace`.
 3. Click the failed event to highlight its node and inspect prompt/tool/result.
 4. Click `Replay failed step`.
-5. Open `Artifacts`, `Costs`, `Validation`, and `Doctor`, then export the `.agentdesk-session.json` replay session.
+5. Open `Artifacts`, `Costs`, `Validation`, `Doctor`, and `LLMs`, then export the `.agentdesk-session.json` replay session.
 
 ## What Works Today
 
 - Visual workflow canvas with four launch demos: Repo QA Swarm, Local Research Agent, MCP Tool Router, and Failure Replay Lab.
 - Demo trace runner with active-node highlighting, trace-to-node selection, node-to-latest-event inspection, graph validation, cost/token summaries, simulated failures, whole-run replay, and failed-step replay.
-- Debugger inspector tabs for Trace, Debug, Artifacts, Costs, Validation, Doctor, and MCP import.
+- Debugger inspector tabs for Start, Trace, Debug, Artifacts, Costs, Validation, Doctor, LLMs, and MCP import.
 - Artifact viewer for JSON, markdown, simulated screenshot SVG previews, stdout, and stderr captured from trace events.
 - Graph health UI for cycles, missing endpoints, duplicate IDs, missing edges, unreachable outputs, and non-output dead ends.
 - Live local Ollama mode for `provider: "ollama"` model nodes only.
+- Cloud BYOK mode for configured `provider: "openai"` and `provider: "anthropic"` model nodes, with API keys held in browser session state only.
+- Provider/model dropdown presets for OpenAI Responses and Anthropic Messages, plus editable base URL and model fields.
 - MCP config import for Claude-style `mcpServers`, VS Code-style `servers`, nested `mcp.servers`, remote server URLs, and single-server JSON.
 - MCP metadata readiness, risk flags, inferred tool hints, and env/header key names without secret values.
 - Replay-session import/export with `portableWorkflow`, `traceSummary`, full trace data, artifacts, costs, validation issues, selected evidence, imported MCP metadata, and secret/path redaction.
 - Packaged static CLI via `agentdesk` after `npm run build`.
 
 Imported MCP commands are **metadata-only** in this release. AgentDesk does not execute MCP stdio commands or probe remote MCP URLs automatically.
-OpenAI, Anthropic, and other cloud-provider nodes are simulated in this release; live execution is limited to local Ollama model nodes.
+Non-model tool, MCP, local, and unmatched cloud-provider steps remain simulated unless a future runtime explicitly enables them.
 
 ## Quick Start
 
@@ -54,6 +56,8 @@ npm run dev
 ```
 
 Open `http://127.0.0.1:5173`.
+
+The app opens on `Start`, which gives the shortest path into the Failure Replay Lab, trace inspector, Doctor, and LLM key setup.
 
 ### Guided Demo
 
@@ -74,6 +78,17 @@ Open `http://127.0.0.1:5173`.
 
 Only Ollama model nodes are executed. All MCP and local tool nodes remain simulated metadata steps.
 Cloud-provider model nodes remain simulated too, with trace entries marked as simulated during Ollama mode.
+
+### Optional Cloud BYOK Run
+
+1. Open the `LLMs` tab.
+2. Pick `OpenAI Responses` or `Anthropic Messages`.
+3. Choose a model preset or type a custom model ID.
+4. Paste your API key, then click `Use Cloud mode`.
+5. Click `Apply to nodes` if you want matching model nodes updated to the selected model.
+6. Click `Run BYOK cloud`.
+
+Only configured OpenAI/Anthropic model nodes execute in Cloud mode. API keys stay in this browser tab's React state and are not saved to localStorage, replay sessions, or workflow exports.
 
 ## MCP Import Examples
 
@@ -110,6 +125,7 @@ The CLI serves the built `dist` app from localhost with conservative static-serv
 
 - MCP command execution and true MCP tool discovery are intentionally not enabled yet.
 - Ollama calls happen from the browser to `127.0.0.1:11434`; CORS settings may need adjustment in some local Ollama setups.
+- Cloud BYOK calls happen directly from the browser tab; provider CORS may block some endpoints, and production apps should use a backend proxy or hosted secret boundary instead.
 - Workflow execution is still linear/topological; advanced branching and joins are schema-ready but not fully interactive.
 - Project storage is replay-session import/export only for now; there is no persistent workspace database.
 - The README uses a current screenshot; an optional short GIF can replace it in a later promo pass.
@@ -124,7 +140,7 @@ The CLI serves the built `dist` app from localhost with conservative static-serv
 
 ## Security Notes
 
-AgentDesk treats imported MCP configs and replay sessions as untrusted metadata. Exports redact common secrets and private paths, but local UI display is not a secret vault. Do not paste real secrets into node labels, prompts, stdout/stderr, artifacts, screenshots, or Ollama responses. See [SECURITY.md](./SECURITY.md).
+AgentDesk treats imported MCP configs and replay sessions as untrusted metadata. Exports redact common secrets and private paths, but local UI display is not a secret vault. BYOK API keys are session-only and excluded from replay exports, but direct browser calls still expose the supplied key to the local tab runtime and provider endpoint. Do not paste real secrets into node labels, prompts, stdout/stderr, artifacts, screenshots, or model responses. See [SECURITY.md](./SECURITY.md).
 
 ## License
 

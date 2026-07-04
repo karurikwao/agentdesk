@@ -13,7 +13,7 @@ export type ProviderKind = "ollama" | "openai" | "anthropic" | "local" | "mcp";
 
 export type RunStatus = "idle" | "running" | "paused" | "complete" | "failed";
 
-export type RunMode = "demo" | "ollama";
+export type RunMode = "demo" | "ollama" | "cloud";
 
 export type TraceArtifactType = "json" | "markdown" | "screenshot" | "stdout" | "stderr";
 

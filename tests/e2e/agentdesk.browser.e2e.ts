@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { readFile } from "node:fs/promises";
 
 const pageErrors = new WeakMap<Page, string[]>();
 
@@ -127,6 +128,49 @@ test("imports MCP metadata with readiness and risk labels", async ({ page }) => 
   await page.getByRole("button", { name: "Add MCP nodes" }).click();
   await page.getByRole("tab", { name: "Validation" }).click();
   await expect(page.getByLabel("Graph validation")).toContainText(/warnings/);
+});
+
+test("configures BYOK cloud mode without exporting the API key", async ({ page }) => {
+  await page.route("https://api.openai.com/v1/responses", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        id: "resp_e2e",
+        model: "gpt-5.5",
+        output_text: "Cloud BYOK response captured.",
+        usage: { input_tokens: 42, output_tokens: 7 }
+      })
+    });
+  });
+  await page.goto("/");
+  await selectDemo(page, "Local Research Agent");
+
+  await page.getByRole("tab", { name: "LLMs" }).click();
+  await expect(page.getByLabel("LLM configuration")).toContainText("Bring your own key");
+  await page.getByLabel("OpenAI API key").fill("sk-e2e-secret-value");
+  await page.getByRole("button", { name: "Use Cloud mode" }).click();
+  await page.getByRole("button", { name: "Apply to nodes" }).click();
+
+  await page.getByRole("button", { name: "Run BYOK cloud" }).click();
+  await expect(page.getByRole("button", { name: "Inspect Brief" })).toBeVisible({
+    timeout: 15_000
+  });
+  await graphNode(page, "Cloud Synthesis").click();
+  await expect(page.getByLabel("Node debugger")).toContainText("Cloud Synthesis");
+  await expect(page.getByLabel("Node debugger")).toContainText("Cloud BYOK response captured.");
+
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("button", { name: "Export replay session" }).click()
+  ]);
+  const replaySessionPath = await download.path();
+  if (!replaySessionPath) {
+    throw new Error("Playwright did not expose the replay-session download path.");
+  }
+
+  const exported = await readFile(replaySessionPath, "utf8");
+  expect(exported).not.toContain("sk-e2e-secret-value");
 });
 
 test("surfaces graph validation issues from canvas edits", async ({ page }) => {

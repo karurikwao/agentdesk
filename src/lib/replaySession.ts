@@ -219,7 +219,7 @@ export function parseReplaySessionImport(input: string | unknown): ImportedRepla
     importedServers: session.importedServers ?? [],
     session: {
       status: normalizeRunStatus(session.session?.status, session.trace),
-      runMode: session.session?.runMode === "ollama" ? "ollama" : "demo",
+      runMode: normalizeRunMode(session.session?.runMode),
       selectedTraceEventId: selectedEvent?.id,
       selectedArtifactId: session.session?.selectedArtifactId ?? selectedEvent?.artifacts?.[0]?.id,
       inspectedNodeId: session.session?.inspectedNodeId ?? selectedEvent?.nodeId,
@@ -731,6 +731,14 @@ function normalizeRunStatus(value: RunStatus | undefined, trace: TraceEvent[]): 
   }
 
   return trace.some((event) => event.status === "failed") ? "failed" : trace.length > 0 ? "complete" : "idle";
+}
+
+function normalizeRunMode(value: RunMode | undefined): RunMode {
+  if (value === "demo" || value === "ollama" || value === "cloud") {
+    return value;
+  }
+
+  return "demo";
 }
 
 function validateConfigRecord(value: unknown, path: string, errors: string[]) {

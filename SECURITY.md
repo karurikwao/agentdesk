@@ -9,8 +9,10 @@ Use GitHub private vulnerability reporting for secret handling, command executio
 ## Current Safety Rules
 
 - Ollama live mode only sends requests to `http://127.0.0.1:11434/api/generate`.
+- Cloud BYOK mode sends configured OpenAI/Anthropic model-node prompts directly from the browser tab using the user's session-only API key.
+- BYOK API keys are held in React state only and are not written to localStorage, replay sessions, or workflow exports.
 - Imported MCP commands are metadata-only unless a future approval-gated runner is added.
 - Remote MCP URLs are parsed and redacted; they are not fetched automatically.
 - Replay-session exports redact common secret names, token formats, URLs, validation messages, imported MCP metadata, debug payloads, artifacts, and private user path prefixes.
-- Do not paste real secrets into node labels, prompts, Ollama responses, stdout/stderr, screenshots, artifacts, or invalid MCP JSON. React escapes text for XSS safety, but local UI display is not a secret vault.
-- New MCP/import/export changes must include redaction tests.
+- Do not paste real secrets into node labels, prompts, model responses, stdout/stderr, screenshots, artifacts, or invalid MCP JSON. React escapes text for XSS safety, but local UI display is not a secret vault.
+- New BYOK, MCP, import, or export changes must include redaction tests.

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0 - 2026-07-04
+
+- Added first-run Start inspector tab with direct paths into the Failure Replay Lab, trace, Doctor, and LLM setup.
+- Added Cloud BYOK run mode for configured OpenAI/Anthropic model nodes while keeping non-model and unmatched steps clearly simulated.
+- Added LLM provider/model dropdowns, editable base URL/model fields, session-only API key handling, and a key-forget action.
+- Added browser-direct OpenAI Responses and Anthropic Messages runners with prompt/result artifacts and secret-free debug payloads.
+- Preserved `cloud` run mode in replay-session imports without exporting API keys.
+
 ## 0.3.0 - 2026-07-04
 
 - Added replay-session export/import for graph, trace, artifacts, costs, validation issues, replay attempts, selected evidence, and imported MCP metadata.

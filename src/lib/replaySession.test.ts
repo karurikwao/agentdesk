@@ -168,6 +168,25 @@ describe("replay session helpers", () => {
     expect(replay.replayAttempt).toBe(1);
   });
 
+  it("preserves Cloud mode during replay-session import", () => {
+    const failed = createTraceEvent(demoWorkflows[3], "browser-fail", 2, "run-1");
+    const session = createReplaySessionExport({
+      workflow: demoWorkflows[3],
+      trace: [failed],
+      session: {
+        status: "failed",
+        runMode: "cloud",
+        selectedTraceEventId: failed.id,
+        activeInspectorTab: "llms"
+      }
+    });
+
+    const imported = parseReplaySessionImport(JSON.stringify(session));
+
+    expect(imported.session.runMode).toBe("cloud");
+    expect(JSON.stringify(imported)).not.toContain("apiKey");
+  });
+
   it("redacts validation issues and imported MCP metadata side channels", () => {
     const { trace, workflow } = createReplayFixture();
     const session = createReplaySessionExport({

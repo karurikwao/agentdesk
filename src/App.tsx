@@ -8,6 +8,13 @@ import { demoWorkflows } from "./data/workflows";
 import { downloadJson } from "./lib/export";
 import { createCostBreakdown, createTraceEvent, getRunOrder, validateWorkflowGraph } from "./lib/runEngine";
 import { checkOllamaStatus, runOllamaNode } from "./lib/ollama";
+import { runCloudLlmNode } from "./lib/cloudLlm";
+import {
+  defaultLlmRuntimeConfig,
+  hasUsableCloudConfig,
+  isCloudLlmProvider,
+  type LlmRuntimeConfig
+} from "./lib/llmConfig";
 import { createReplaySessionExport, parseReplaySessionImport } from "./lib/replaySession";
 import {
   collectBrowserCapabilities,
@@ -53,9 +60,10 @@ export function App() {
   const [inspectedNodeId, setInspectedNodeId] = useState<string | undefined>();
   const [selectedTraceEventId, setSelectedTraceEventId] = useState<string | undefined>();
   const [selectedArtifactId, setSelectedArtifactId] = useState<string | undefined>();
-  const [activeInspectorTab, setActiveInspectorTab] = useState<InspectorTab>("trace");
+  const [activeInspectorTab, setActiveInspectorTab] = useState<InspectorTab>("start");
   const [importedServers, setImportedServers] = useState<ImportedMcpServer[]>([]);
   const [ollamaStatus, setOllamaStatus] = useState<OllamaReadinessStatus>(defaultOllamaStatus);
+  const [llmConfig, setLlmConfig] = useState<LlmRuntimeConfig>(defaultLlmRuntimeConfig);
   const [sessionNotice, setSessionNotice] = useState("No replay session imported yet.");
   const [sessionError, setSessionError] = useState<string | undefined>();
   const runToken = useRef(0);
@@ -121,6 +129,20 @@ export function App() {
     [inspectedNodeId, selectedTraceEvent, trace]
   );
   const artifacts = useMemo(() => collectArtifacts(trace), [trace]);
+  const cloudModelNodeCount = useMemo(
+    () => nodes.filter((node) => node.data.kind === "model" && isCloudLlmProvider(node.data.provider)).length,
+    [nodes]
+  );
+  const configuredCloudModelNodeCount = useMemo(
+    () =>
+      nodes.filter(
+        (node) =>
+          node.data.kind === "model" &&
+          node.data.provider === llmConfig.provider &&
+          hasUsableCloudConfig(llmConfig, node.data.provider)
+      ).length,
+    [llmConfig, nodes]
+  );
 
   const onConnect = useCallback(
     (connection: Connection) => {
@@ -154,7 +176,7 @@ export function App() {
     setInspectedNodeId(undefined);
     setSelectedTraceEventId(undefined);
     setSelectedArtifactId(undefined);
-    setActiveInspectorTab("trace");
+    setActiveInspectorTab("start");
     setSessionNotice(
       workflow.id === importedWorkflow?.id
         ? "Imported replay session loaded."
@@ -174,7 +196,7 @@ export function App() {
     setInspectedNodeId(undefined);
     setSelectedTraceEventId(undefined);
     setSelectedArtifactId(undefined);
-    setActiveInspectorTab("trace");
+    setActiveInspectorTab(mode === "cloud" ? "llms" : "trace");
     setTrace([]);
     setSessionError(undefined);
   }
@@ -239,6 +261,48 @@ export function App() {
 
     setNodes((currentNodes) => [...currentNodes, ...importedNodes]);
     setActiveInspectorTab("validation");
+  }
+
+  function updateLlmConfig(nextConfig: LlmRuntimeConfig) {
+    setLlmConfig({
+      ...nextConfig,
+      updatedAt: new Date().toISOString()
+    });
+    setSessionError(undefined);
+  }
+
+  function forgetLlmKey() {
+    setLlmConfig((currentConfig) => ({
+      ...currentConfig,
+      apiKey: "",
+      updatedAt: new Date().toISOString()
+    }));
+    setSessionNotice(`${llmConfig.provider} API key cleared from this browser session.`);
+    setSessionError(undefined);
+  }
+
+  function applyLlmConfigToNodes() {
+    setNodes((currentNodes) =>
+      currentNodes.map((node) =>
+        node.data.kind === "model" && node.data.provider === llmConfig.provider
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                model: llmConfig.model,
+                timeoutMs: node.data.timeoutMs ?? 30000
+              }
+            }
+          : node
+      )
+    );
+    setSessionNotice(`Applied ${llmConfig.model} to ${llmConfig.provider} model nodes.`);
+    setActiveInspectorTab("llms");
+  }
+
+  function selectFailureReplayLab() {
+    selectWorkflow("failure-replay");
+    setActiveInspectorTab("trace");
   }
 
   async function runWorkflow() {
@@ -310,8 +374,16 @@ export function App() {
 
       const runsLocallyThroughOllama =
         runMode === "ollama" && node.data.kind === "model" && node.data.provider === "ollama";
+      const runsThroughCloudProvider =
+        runMode === "cloud" &&
+        node.data.kind === "model" &&
+        hasUsableCloudConfig(llmConfig, node.data.provider);
       const event = runsLocallyThroughOllama
         ? await runOllamaNode(runtimeWorkflow, node, index, runId, {
+            signal: abortController.signal
+          })
+        : runsThroughCloudProvider
+        ? await runCloudLlmNode(runtimeWorkflow, node, index, runId, llmConfig, {
             signal: abortController.signal
           })
         : markSimulatedIfLiveMode(createTraceEvent(runtimeWorkflow, nodeId, index, runId), runMode);
@@ -570,9 +642,23 @@ export function App() {
                 graphIssues={graphIssues}
                 readinessReport={readinessReport}
                 ollamaStatus={ollamaStatus}
+                runMode={runMode}
+                workflowName={selectedWorkflow.name}
+                cloudModelNodeCount={cloudModelNodeCount}
+                configuredCloudModelNodeCount={configuredCloudModelNodeCount}
+                llmConfig={llmConfig}
                 importedServers={importedServers}
                 sessionNotice={sessionNotice}
                 sessionError={sessionError}
+                onRunDemo={runWorkflow}
+                onOpenLlms={() => setActiveInspectorTab("llms")}
+                onOpenTrace={() => setActiveInspectorTab("trace")}
+                onOpenDoctor={() => setActiveInspectorTab("doctor")}
+                onSelectFailureReplay={selectFailureReplayLab}
+                onRunModeChange={changeRunMode}
+                onLlmConfigChange={updateLlmConfig}
+                onForgetLlmKey={forgetLlmKey}
+                onApplyLlmConfigToNodes={applyLlmConfigToNodes}
                 onEventSelect={inspectTraceEvent}
                 onReplayFailedStep={replayFailedStep}
                 onArtifactSelect={(artifactId) => {
@@ -593,15 +679,17 @@ export function App() {
 }
 
 function normalizeInspectorTab(tab: string | undefined): InspectorTab {
-  return tab === "trace" ||
+  return tab === "start" ||
+    tab === "trace" ||
     tab === "debug" ||
     tab === "artifacts" ||
     tab === "costs" ||
     tab === "validation" ||
     tab === "doctor" ||
+    tab === "llms" ||
     tab === "mcp"
     ? tab
-    : "debug";
+    : "start";
 }
 
 function findLatestEventForNode(trace: TraceEvent[], nodeId?: string) {
@@ -645,17 +733,23 @@ function titleCase(value: string) {
 }
 
 function markSimulatedIfLiveMode(event: TraceEvent, runMode: RunMode): TraceEvent {
-  if (runMode !== "ollama") {
+  if (runMode === "demo") {
     return event;
   }
+
+  const modeLabel = runMode === "ollama" ? "Ollama mode" : "Cloud BYOK mode";
+  const fallback =
+    runMode === "ollama"
+      ? "Simulated step only; only Ollama model nodes execute locally in Ollama mode."
+      : "Simulated step only; only configured OpenAI/Anthropic model nodes execute in Cloud BYOK mode.";
 
   return {
     ...event,
     costUsd: 0,
-    summary: `Simulated in Ollama mode: ${event.summary}`,
+    summary: `Simulated in ${modeLabel}: ${event.summary}`,
     outputPreview: event.outputPreview
-      ? `Simulated step only. ${event.outputPreview}`
-      : "Simulated step only; no cloud API or MCP tool was executed."
+      ? `${fallback} ${event.outputPreview}`
+      : fallback
   };
 }
 

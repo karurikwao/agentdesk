@@ -6,14 +6,17 @@ import {
   Code2,
   Database,
   FileText,
+  KeyRound,
   Image as ImageIcon,
   ReceiptText,
   RefreshCw,
   ShieldCheck,
+  Sparkles,
   TerminalSquare,
   Waypoints
 } from "lucide-react";
 import type { ReactNode } from "react";
+import { LlmConfigPanel } from "./LlmConfigPanel";
 import { McpPanel } from "./McpPanel";
 import { TracePanel } from "./TracePanel";
 import type {
@@ -21,13 +24,24 @@ import type {
   CostBreakdownItem,
   GraphValidationIssue,
   ImportedMcpServer,
+  RunMode,
   RunStatus,
   TraceArtifact,
   TraceEvent
 } from "../types/workflow";
+import type { LlmRuntimeConfig } from "../lib/llmConfig";
 import type { OllamaReadinessStatus, ReadinessCheck, ReadinessReport } from "../lib/readiness";
 
-export type InspectorTab = "trace" | "debug" | "artifacts" | "costs" | "validation" | "doctor" | "mcp";
+export type InspectorTab =
+  | "start"
+  | "trace"
+  | "debug"
+  | "artifacts"
+  | "costs"
+  | "validation"
+  | "doctor"
+  | "llms"
+  | "mcp";
 
 type InspectorRailProps = {
   activeTab: InspectorTab;
@@ -44,9 +58,23 @@ type InspectorRailProps = {
   graphIssues: GraphValidationIssue[];
   readinessReport: ReadinessReport;
   ollamaStatus: OllamaReadinessStatus;
+  runMode: RunMode;
+  workflowName: string;
+  cloudModelNodeCount: number;
+  configuredCloudModelNodeCount: number;
+  llmConfig: LlmRuntimeConfig;
   importedServers: ImportedMcpServer[];
   sessionNotice: string;
   sessionError?: string;
+  onRunDemo: () => void;
+  onOpenLlms: () => void;
+  onOpenTrace: () => void;
+  onOpenDoctor: () => void;
+  onSelectFailureReplay: () => void;
+  onRunModeChange: (mode: RunMode) => void;
+  onLlmConfigChange: (config: LlmRuntimeConfig) => void;
+  onForgetLlmKey: () => void;
+  onApplyLlmConfigToNodes: () => void;
   onEventSelect: (event: TraceEvent) => void;
   onReplayFailedStep: (event: TraceEvent) => void;
   onArtifactSelect: (artifactId: string) => void;
@@ -57,12 +85,14 @@ type InspectorRailProps = {
 };
 
 const tabs: Array<{ id: InspectorTab; label: string }> = [
+  { id: "start", label: "Start" },
   { id: "trace", label: "Trace" },
   { id: "debug", label: "Debug" },
   { id: "artifacts", label: "Artifacts" },
   { id: "costs", label: "Costs" },
   { id: "validation", label: "Validation" },
   { id: "doctor", label: "Doctor" },
+  { id: "llms", label: "LLMs" },
   { id: "mcp", label: "MCP" }
 ];
 
@@ -81,9 +111,23 @@ export function InspectorRail({
   graphIssues,
   readinessReport,
   ollamaStatus,
+  runMode,
+  workflowName,
+  cloudModelNodeCount,
+  configuredCloudModelNodeCount,
+  llmConfig,
   importedServers,
   sessionNotice,
   sessionError,
+  onRunDemo,
+  onOpenLlms,
+  onOpenTrace,
+  onOpenDoctor,
+  onSelectFailureReplay,
+  onRunModeChange,
+  onLlmConfigChange,
+  onForgetLlmKey,
+  onApplyLlmConfigToNodes,
   onEventSelect,
   onReplayFailedStep,
   onArtifactSelect,
@@ -113,6 +157,21 @@ export function InspectorRail({
       </div>
 
       <div className="inspector-body">
+        {activeTab === "start" ? (
+          <StartPanel
+            workflowName={workflowName}
+            runMode={runMode}
+            eventCount={events.length}
+            graphIssueCount={graphIssues.length}
+            hasKey={llmConfig.apiKey.trim().length > 0}
+            configuredCloudModelNodeCount={configuredCloudModelNodeCount}
+            onRunDemo={onRunDemo}
+            onOpenLlms={onOpenLlms}
+            onOpenTrace={onOpenTrace}
+            onOpenDoctor={onOpenDoctor}
+            onSelectFailureReplay={onSelectFailureReplay}
+          />
+        ) : null}
         {activeTab === "trace" ? (
           <TracePanel
             status={status}
@@ -144,6 +203,18 @@ export function InspectorRail({
             onCheckOllama={onCheckOllama}
           />
         ) : null}
+        {activeTab === "llms" ? (
+          <LlmConfigPanel
+            config={llmConfig}
+            runMode={runMode}
+            cloudModelNodeCount={cloudModelNodeCount}
+            configuredCloudModelNodeCount={configuredCloudModelNodeCount}
+            onChange={onLlmConfigChange}
+            onRunModeChange={onRunModeChange}
+            onForgetKey={onForgetLlmKey}
+            onApplyToNodes={onApplyLlmConfigToNodes}
+          />
+        ) : null}
         {activeTab === "mcp" ? (
           <McpPanel
             importedServers={importedServers}
@@ -153,6 +224,96 @@ export function InspectorRail({
         ) : null}
       </div>
     </aside>
+  );
+}
+
+function StartPanel({
+  workflowName,
+  runMode,
+  eventCount,
+  graphIssueCount,
+  hasKey,
+  configuredCloudModelNodeCount,
+  onRunDemo,
+  onOpenLlms,
+  onOpenTrace,
+  onOpenDoctor,
+  onSelectFailureReplay
+}: {
+  workflowName: string;
+  runMode: RunMode;
+  eventCount: number;
+  graphIssueCount: number;
+  hasKey: boolean;
+  configuredCloudModelNodeCount: number;
+  onRunDemo: () => void;
+  onOpenLlms: () => void;
+  onOpenTrace: () => void;
+  onOpenDoctor: () => void;
+  onSelectFailureReplay: () => void;
+}) {
+  return (
+    <section className="start-panel panel-shell" aria-label="Start here">
+      <PanelHeader
+        eyebrow="Start here"
+        title={workflowName}
+        detail={runMode === "cloud" ? "Cloud BYOK mode" : runMode === "ollama" ? "Local Ollama mode" : "Demo mode"}
+      />
+      <div className="start-panel__body">
+        <div className="start-card start-card--primary">
+          <Sparkles size={18} />
+          <div>
+            <strong>Fastest path</strong>
+            <span>Run the Failure Replay Lab, click the failed event, then replay that failed step.</span>
+          </div>
+          <button type="button" className="secondary-button" onClick={onSelectFailureReplay}>
+            Load lab
+          </button>
+        </div>
+
+        <div className="start-actions">
+          <button type="button" className="secondary-button" onClick={onRunDemo}>
+            Run current workflow
+          </button>
+          <button type="button" className="secondary-button" onClick={onOpenTrace}>
+            Open trace
+          </button>
+          <button type="button" className="secondary-button" onClick={onOpenLlms}>
+            <KeyRound size={15} />
+            LLM keys
+          </button>
+          <button type="button" className="secondary-button" onClick={onOpenDoctor}>
+            Doctor
+          </button>
+        </div>
+
+        <div className="start-grid">
+          <StatusTile label="Trace events" value={String(eventCount)} />
+          <StatusTile label="Graph checks" value={graphIssueCount === 0 ? "Ready" : `${graphIssueCount} issue(s)`} />
+          <StatusTile
+            label="Cloud keys"
+            value={hasKey ? `${configuredCloudModelNodeCount} node(s)` : "Not set"}
+          />
+        </div>
+
+        <div className="start-note">
+          <strong>Execution rules</strong>
+          <span>
+            Demo is simulated. Ollama runs only local Ollama model nodes. Cloud runs only configured
+            OpenAI/Anthropic model nodes with your session key.
+          </span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function StatusTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="start-tile">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
   );
 }
 

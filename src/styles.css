@@ -33,6 +33,8 @@ body {
 }
 
 button,
+input,
+select,
 textarea {
   font: inherit;
 }
@@ -305,6 +307,12 @@ button:disabled {
   background: #ccfbf1;
 }
 
+.mode-badge--cloud {
+  border-color: rgba(124, 58, 237, 0.32);
+  color: #5b21b6;
+  background: #ede9fe;
+}
+
 .mode-switch {
   display: inline-flex;
   padding: 3px;
@@ -434,6 +442,8 @@ button:disabled {
 
 .inspector-body .trace-panel,
 .inspector-body .mcp-panel,
+.inspector-body .start-panel,
+.inspector-body .llm-config-panel,
 .inspector-body .doctor-panel {
   height: 100%;
   border: 0;
@@ -1002,6 +1012,229 @@ button:disabled {
   overflow: hidden;
 }
 
+.start-panel__body,
+.llm-config-body {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px;
+}
+
+.start-card,
+.start-note,
+.llm-status,
+.llm-warning {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.start-card {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+}
+
+.start-card--primary {
+  border-color: rgba(37, 99, 235, 0.25);
+  background: #eff6ff;
+}
+
+.start-card svg,
+.llm-status svg {
+  color: var(--blue-dark);
+}
+
+.start-card strong,
+.start-note strong,
+.llm-warning strong {
+  display: block;
+  font-size: 13px;
+}
+
+.start-card span,
+.start-note span,
+.llm-status span,
+.llm-warning span,
+.llm-warning small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.start-card .secondary-button {
+  grid-column: 1 / -1;
+  width: fit-content;
+}
+
+.start-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.start-actions .secondary-button {
+  width: 100%;
+}
+
+.start-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.start-tile {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-strong);
+}
+
+.start-tile span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.start-tile strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.llm-config-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.llm-config-head strong,
+.llm-config-head span {
+  display: block;
+}
+
+.llm-config-head strong {
+  margin-top: 3px;
+  font-size: 17px;
+}
+
+.llm-config-head span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.llm-config-head a {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--blue-dark);
+  background: #eff6ff;
+}
+
+.llm-status {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  border-color: rgba(124, 58, 237, 0.22);
+  background: #f5f3ff;
+}
+
+.llm-status--ready {
+  border-color: rgba(20, 184, 166, 0.3);
+  background: #ecfdf5;
+}
+
+.llm-field {
+  display: grid;
+  gap: 6px;
+}
+
+.llm-field span,
+.llm-toggle span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.llm-field input,
+.llm-field select {
+  min-width: 0;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: #ffffff;
+}
+
+.llm-field input:focus,
+.llm-field select:focus {
+  border-color: rgba(37, 99, 235, 0.55);
+  outline: 3px solid rgba(37, 99, 235, 0.12);
+}
+
+.llm-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.llm-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-strong);
+  white-space: nowrap;
+}
+
+.llm-toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--blue);
+}
+
+.llm-config-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.llm-config-actions .secondary-button {
+  min-width: 0;
+  padding: 0 10px;
+}
+
+.llm-config-actions .secondary-button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.llm-warning {
+  border-color: rgba(245, 158, 11, 0.32);
+  background: #fffbeb;
+}
+
 .panel-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -1452,6 +1685,13 @@ button:disabled {
 
   .inspector-tabs {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .start-actions,
+  .start-grid,
+  .llm-grid,
+  .llm-config-actions {
+    grid-template-columns: 1fr;
   }
 
   .cost-row {

@@ -62,9 +62,20 @@ export function Topbar({
           >
             Ollama
           </button>
+          <button
+            type="button"
+            className={runMode === "cloud" ? "is-active" : ""}
+            onClick={() => onRunModeChange("cloud")}
+          >
+            Cloud
+          </button>
         </div>
         <span className={`mode-badge mode-badge--${runMode}`}>
-          {runMode === "demo" ? "Simulated trace / no execution" : "Live local / Ollama only"}
+          {runMode === "demo"
+            ? "Simulated trace / no execution"
+            : runMode === "ollama"
+            ? "Live local / Ollama only"
+            : "BYOK cloud / model nodes only"}
         </span>
         <button
           type="button"
@@ -99,7 +110,15 @@ export function Topbar({
           onClick={isRunning ? onStop : onRun}
         >
           {isRunning ? <Square size={16} /> : <Play size={16} />}
-          <span>{isRunning ? "Stop" : runMode === "demo" ? "Run demo trace" : "Run local Ollama"}</span>
+          <span>
+            {isRunning
+              ? "Stop"
+              : runMode === "demo"
+              ? "Run demo trace"
+              : runMode === "ollama"
+              ? "Run local Ollama"
+              : "Run BYOK cloud"}
+          </span>
         </button>
       </div>
     </header>

@@ -1,6 +1,6 @@
 {
   "name": "agentdesk",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Local visual debugger for replaying and inspecting AI agent workflows.",
   "type": "module",
   "packageManager": "npm@11.13.0",
