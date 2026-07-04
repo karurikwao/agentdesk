@@ -5,9 +5,19 @@ type TracePanelProps = {
   status: RunStatus;
   events: TraceEvent[];
   activeNodeId?: string;
+  selectedTraceEventId?: string;
+  onEventSelect: (event: TraceEvent) => void;
+  onReplayFailedStep: (event: TraceEvent) => void;
 };
 
-export function TracePanel({ status, events, activeNodeId }: TracePanelProps) {
+export function TracePanel({
+  status,
+  events,
+  activeNodeId,
+  selectedTraceEventId,
+  onEventSelect,
+  onReplayFailedStep
+}: TracePanelProps) {
   const totalTokens = events.reduce((sum, event) => sum + event.tokensIn + event.tokensOut, 0);
   const totalDuration = events.reduce((sum, event) => sum + event.durationMs, 0);
 
@@ -43,8 +53,18 @@ export function TracePanel({ status, events, activeNodeId }: TracePanelProps) {
             <article
               className={`trace-event ${
                 event.nodeId === activeNodeId ? "is-active" : ""
-              }`}
+              } ${event.id === selectedTraceEventId ? "is-selected" : ""}`}
               key={event.id}
+              tabIndex={0}
+              role="button"
+              aria-label={`Inspect ${event.nodeLabel}`}
+              onClick={() => onEventSelect(event)}
+              onKeyDown={(keyboardEvent) => {
+                if (keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
+                  keyboardEvent.preventDefault();
+                  onEventSelect(event);
+                }
+              }}
             >
               <div className="trace-event__top">
                 <span className="trace-event__icon">
@@ -54,6 +74,7 @@ export function TracePanel({ status, events, activeNodeId }: TracePanelProps) {
                 <small>{event.durationMs}ms</small>
               </div>
               <p>{event.summary}</p>
+              {event.replayOf ? <span className="replay-chip">Replay {event.replayAttempt ?? 1}</span> : null}
               {event.error ? <div className="trace-error">{event.error.message}</div> : null}
               {event.outputPreview ? (
                 <div className="trace-preview">
@@ -70,8 +91,28 @@ export function TracePanel({ status, events, activeNodeId }: TracePanelProps) {
               <div className="trace-event__meta">
                 <span>{event.kind}</span>
                 {event.provider ? <span>{event.provider}</span> : null}
+                {event.model ? <span>{event.model}</span> : null}
                 <span>${event.costUsd.toFixed(4)}</span>
               </div>
+              {event.status === "failed" && event.nodeId !== "graph" ? (
+                <button
+                  type="button"
+                  className="secondary-button trace-replay-button"
+                  onClick={(clickEvent) => {
+                    clickEvent.stopPropagation();
+                    onReplayFailedStep(event);
+                  }}
+                >
+                  Replay failed step
+                </button>
+              ) : null}
+              {event.artifacts && event.artifacts.length > 0 ? (
+                <div className="artifact-chips">
+                  {event.artifacts.map((artifact) => (
+                    <span key={artifact.id}>{artifact.type}</span>
+                  ))}
+                </div>
+              ) : null}
               {event.artifact ? (
                 <code className="artifact-link">{event.artifact}</code>
               ) : null}

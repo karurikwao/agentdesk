@@ -78,11 +78,43 @@ export async function runOllamaNode(
       startedAt,
       durationMs: Math.round(performance.now() - started),
       provider: "ollama",
+      model: payload.model ?? model,
       tokensIn: payload.prompt_eval_count ?? estimateTokens(prompt),
       tokensOut: payload.eval_count ?? estimateTokens(output),
       costUsd: 0,
       summary: `${node.data.label} ran locally through Ollama model ${payload.model ?? model}.`,
       artifact: `ollama://${model}/${workflow.id}/${node.id}`,
+      artifacts: [
+        {
+          id: `${workflow.id}-${node.id}-ollama-json`,
+          name: `${node.data.label} Ollama response`,
+          type: "json",
+          uri: `ollama://${model}/${workflow.id}/${node.id}/response.json`,
+          content: JSON.stringify(
+            {
+              model: payload.model ?? model,
+              promptTokens: payload.prompt_eval_count ?? estimateTokens(prompt),
+              outputTokens: payload.eval_count ?? estimateTokens(output),
+              output
+            },
+            null,
+            2
+          )
+        },
+        {
+          id: `${workflow.id}-${node.id}-ollama-markdown`,
+          name: `${node.data.label} local answer`,
+          type: "markdown",
+          uri: `ollama://${model}/${workflow.id}/${node.id}/answer.md`,
+          content: output
+        }
+      ],
+      debug: {
+        prompt,
+        toolCall: JSON.stringify({ provider: "ollama", model, endpoint: "127.0.0.1:11434" }, null, 2),
+        result: output,
+        stdout: `${node.data.label}: local Ollama request completed`
+      },
       inputRef: `input://${workflow.id}/${node.id}`,
       outputRef: `output://${workflow.id}/${node.id}`,
       inputPreview: prompt,
@@ -106,10 +138,26 @@ export async function runOllamaNode(
       startedAt,
       durationMs: Math.round(performance.now() - started),
       provider: "ollama",
+      model,
       tokensIn: estimateTokens(prompt),
       tokensOut: 0,
       costUsd: 0,
       summary: `${node.data.label} could not reach the local Ollama runtime.`,
+      artifacts: [
+        {
+          id: `${workflow.id}-${node.id}-ollama-stderr`,
+          name: `${node.data.label} Ollama error`,
+          type: "stderr",
+          uri: `ollama://${model}/${workflow.id}/${node.id}/stderr.log`,
+          content: message
+        }
+      ],
+      debug: {
+        prompt,
+        toolCall: JSON.stringify({ provider: "ollama", model, endpoint: "127.0.0.1:11434" }, null, 2),
+        result: `${node.data.label} could not reach the local Ollama runtime.`,
+        stderr: message
+      },
       inputRef: `input://${workflow.id}/${node.id}`,
       inputPreview: prompt,
       error: {

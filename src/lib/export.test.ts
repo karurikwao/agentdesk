@@ -41,7 +41,23 @@ describe("workflow export", () => {
         tokensIn: 0,
         tokensOut: 0,
         costUsd: 0,
-        summary: "Called https://user:pass@example.com/api/token/sk-1234567890abcdef?token=secret#secret"
+        provider: "openai",
+        model: "sk-1234567890abcdef",
+        summary: "Called https://user:pass@example.com/api/token/sk-1234567890abcdef?token=secret#secret",
+        debug: {
+          prompt: "Use password=secret and bearer abcdefghijklmnopqrstuvwxyz",
+          toolCall: JSON.stringify({ Authorization: "Bearer abcdefghijklmnopqrstuvwxyz" }),
+          result: "Saved token=secret-token"
+        },
+        artifacts: [
+          {
+            id: "artifact",
+            name: "Payload",
+            type: "json",
+            uri: "artifact://payload.json",
+            content: "postgres://user:pass@example.com/db?password=secret#token"
+          }
+        ]
       }
     ];
 
@@ -61,6 +77,7 @@ describe("workflow export", () => {
     expect(serialized).not.toContain("user:pass");
     expect(serialized).not.toContain("password=secret");
     expect(serialized).not.toContain("#token");
+    expect(serialized).not.toContain("abcdefghijklmnopqrstuvwxyz");
     expect(serialized).not.toContain("secret-token");
     expect(serialized).not.toContain("sk-1234567890abcdef");
   });

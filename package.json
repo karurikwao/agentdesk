@@ -1,7 +1,7 @@
 {
   "name": "agentdesk",
-  "version": "0.1.0",
-  "description": "Local visual workbench for building, debugging, and replaying AI agent workflows.",
+  "version": "0.2.0",
+  "description": "Local visual debugger for replaying and inspecting AI agent workflows.",
   "type": "module",
   "packageManager": "npm@11.13.0",
   "bin": {
@@ -43,6 +43,7 @@
     "docs/assets",
     "docs/examples",
     "docs/LAUNCH_PLAN.md",
+    "docs/PHASE_5_CHECKLIST.md",
     "README.md",
     "LICENSE",
     "SECURITY.md",

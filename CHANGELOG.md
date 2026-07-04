@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.0 - 2026-07-04
+
+- Added tabbed debugger inspector for Trace, Debug, Artifacts, Costs, Validation, and MCP import.
+- Added trace-event clicks that highlight the corresponding graph node.
+- Added node clicks that show the latest prompt, tool/model call, result, stdout, and stderr.
+- Added simulated failed-step replay that appends a linked replay event without rerunning the whole workflow.
+- Added provider/model cost breakdown rows and richer export `traceSummary` cost/artifact fields.
+- Added artifact viewer support for JSON, markdown, simulated screenshot SVG previews, stdout, and stderr.
+- Added structured graph validation issues for cycles, duplicate IDs, missing endpoints, missing edges, unreachable outputs, and dead-end non-output nodes.
+- Kept Phase 5 scoped to debugger depth: non-Ollama MCP, cloud-provider, and local-tool steps remain simulated or metadata-only.
+- Added tests for trace panel replay, graph issue scope, artifact counts, cost grouping, and Ollama debugger artifacts.
+
 ## 0.1.0 - 2026-07-03
 
 - Added launch-ready GitHub metadata: CI workflow, issue templates, PR template, Node version files, and `npm run verify`.

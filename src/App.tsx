@@ -2,21 +2,22 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { addEdge, ReactFlowProvider, useEdgesState, useNodesState, type Connection } from "@xyflow/react";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
-import { TracePanel } from "./components/TracePanel";
 import { WorkflowCanvas } from "./components/WorkflowCanvas";
-import { McpPanel } from "./components/McpPanel";
+import { InspectorRail, type InspectorTab } from "./components/InspectorRail";
 import { demoWorkflows } from "./data/workflows";
 import { createWorkflowExport, downloadJson } from "./lib/export";
-import { createTraceEvent, getRunOrder } from "./lib/runEngine";
+import { createCostBreakdown, createTraceEvent, getRunOrder, validateWorkflowGraph } from "./lib/runEngine";
 import { runOllamaNode } from "./lib/ollama";
 import type {
   AgentNodeData,
   AgentFlowNode,
   AgentNodeKind,
   AgentWorkflow,
+  GraphValidationIssue,
   ImportedMcpServer,
   RunMode,
   RunStatus,
+  TraceArtifact,
   TraceEvent
 } from "./types/workflow";
 
@@ -34,6 +35,10 @@ export function App() {
   const [status, setStatus] = useState<RunStatus>("idle");
   const [runMode, setRunMode] = useState<RunMode>("demo");
   const [activeNodeId, setActiveNodeId] = useState<string | undefined>();
+  const [inspectedNodeId, setInspectedNodeId] = useState<string | undefined>();
+  const [selectedTraceEventId, setSelectedTraceEventId] = useState<string | undefined>();
+  const [selectedArtifactId, setSelectedArtifactId] = useState<string | undefined>();
+  const [activeInspectorTab, setActiveInspectorTab] = useState<InspectorTab>("trace");
   const [importedServers, setImportedServers] = useState<ImportedMcpServer[]>([]);
   const runToken = useRef(0);
   const activeRunAbort = useRef<AbortController | null>(null);
@@ -49,9 +54,49 @@ export function App() {
   );
 
   const totalCost = trace.reduce((sum, event) => sum + event.costUsd, 0);
+  const graphIssues = useMemo(() => validateWorkflowGraph(runtimeWorkflow), [runtimeWorkflow]);
+  const issueNodeIds = useMemo(
+    () =>
+      new Set(
+        graphIssues.flatMap((issue) => [
+          ...(issue.nodeId ? [issue.nodeId] : []),
+          ...(issue.nodeIds ?? [])
+        ])
+      ),
+    [graphIssues]
+  );
+  const issueEdgeIds = useMemo(
+    () =>
+      new Set(
+        graphIssues.flatMap((issue) => [
+          ...(issue.edgeId ? [issue.edgeId] : []),
+          ...(issue.edgeIds ?? [])
+        ])
+      ),
+    [graphIssues]
+  );
+  const costBreakdown = useMemo(() => createCostBreakdown(trace), [trace]);
+  const selectedTraceEvent = useMemo(
+    () => trace.find((event) => event.id === selectedTraceEventId),
+    [selectedTraceEventId, trace]
+  );
+  const inspectedNode = useMemo(
+    () => nodes.find((node) => node.id === inspectedNodeId),
+    [inspectedNodeId, nodes]
+  );
+  const latestEvent = useMemo(
+    () => selectedTraceEvent ?? findLatestEventForNode(trace, inspectedNodeId),
+    [inspectedNodeId, selectedTraceEvent, trace]
+  );
+  const artifacts = useMemo(() => collectArtifacts(trace), [trace]);
 
   const onConnect = useCallback(
     (connection: Connection) => {
+      if (!connection.source || !connection.target || connection.source === connection.target) {
+        setActiveInspectorTab("validation");
+        return;
+      }
+
       setEdges((currentEdges) => addEdge({ ...connection, animated: true }, currentEdges));
     },
     [setEdges]
@@ -74,6 +119,10 @@ export function App() {
     setTrace([]);
     setStatus("idle");
     setActiveNodeId(undefined);
+    setInspectedNodeId(undefined);
+    setSelectedTraceEventId(undefined);
+    setSelectedArtifactId(undefined);
+    setActiveInspectorTab("trace");
   }
 
   function changeRunMode(mode: RunMode) {
@@ -84,6 +133,10 @@ export function App() {
     setRunMode(mode);
     setStatus("idle");
     setActiveNodeId(undefined);
+    setInspectedNodeId(undefined);
+    setSelectedTraceEventId(undefined);
+    setSelectedArtifactId(undefined);
+    setActiveInspectorTab("trace");
     setTrace([]);
   }
 
@@ -106,6 +159,10 @@ export function App() {
     };
 
     setNodes((currentNodes) => [...currentNodes, node]);
+    setInspectedNodeId(node.id);
+    setSelectedTraceEventId(undefined);
+    setSelectedArtifactId(undefined);
+    setActiveInspectorTab("validation");
   }
 
   function addImportedMcpNodes() {
@@ -142,6 +199,7 @@ export function App() {
     });
 
     setNodes((currentNodes) => [...currentNodes, ...importedNodes]);
+    setActiveInspectorTab("validation");
   }
 
   async function runWorkflow() {
@@ -152,6 +210,9 @@ export function App() {
     runToken.current = token;
     setStatus("running");
     setTrace([]);
+    setSelectedTraceEventId(undefined);
+    setSelectedArtifactId(undefined);
+    setActiveInspectorTab("trace");
 
     let order: string[];
     try {
@@ -159,6 +220,7 @@ export function App() {
     } catch (error) {
       setStatus("failed");
       setActiveNodeId(undefined);
+      setActiveInspectorTab("validation");
       setTrace([
         {
           id: `graph-error-${Date.now()}`,
@@ -220,9 +282,16 @@ export function App() {
       }
 
       setTrace((currentTrace) => [...currentTrace, event]);
+      setInspectedNodeId(event.nodeId);
+      setSelectedTraceEventId(event.id);
+      setSelectedArtifactId(event.artifacts?.[0]?.id);
 
       if (event.status === "failed") {
-        setActiveNodeId(undefined);
+        setActiveNodeId(nodeId);
+        setInspectedNodeId(nodeId);
+        setSelectedTraceEventId(event.id);
+        setSelectedArtifactId(event.artifacts?.[0]?.id);
+        setActiveInspectorTab("debug");
         setStatus("failed");
         if (activeRunAbort.current === abortController) {
           activeRunAbort.current = null;
@@ -248,10 +317,15 @@ export function App() {
       const node = runtimeWorkflow.nodes.find((candidate) => candidate.id === activeNodeId);
 
       if (node) {
+        const cancelledEvent = createCancelledTraceEvent(node, currentRunId.current ?? `run-${Date.now()}`);
         setTrace((currentTrace) => [
           ...currentTrace,
-          createCancelledTraceEvent(node, currentRunId.current ?? `run-${Date.now()}`)
+          cancelledEvent
         ]);
+        setInspectedNodeId(node.id);
+        setSelectedTraceEventId(cancelledEvent.id);
+        setSelectedArtifactId(cancelledEvent.artifacts?.[0]?.id);
+        setActiveInspectorTab("debug");
       }
     }
     currentRunId.current = undefined;
@@ -260,7 +334,65 @@ export function App() {
   }
 
   function replayRun() {
+    const selectedFailedEvent = selectedTraceEvent?.status === "failed" ? selectedTraceEvent : undefined;
+
+    if (selectedFailedEvent && selectedFailedEvent.nodeId !== "graph") {
+      replayFailedStep(selectedFailedEvent);
+      return;
+    }
+
     void runWorkflow();
+  }
+
+  function replayFailedStep(event: TraceEvent) {
+    const nodeIndex = runtimeWorkflow.nodes.findIndex((node) => node.id === event.nodeId);
+
+    if (nodeIndex < 0) {
+      return;
+    }
+
+    const replayEvent = createTraceEvent(runtimeWorkflow, event.nodeId, nodeIndex, `replay-${Date.now()}`, {
+      replayOf: event,
+      replayAttempt: (event.replayAttempt ?? 0) + 1
+    });
+
+    setTrace((currentTrace) => [...currentTrace, replayEvent]);
+    setStatus("complete");
+    setActiveNodeId(event.nodeId);
+    setInspectedNodeId(event.nodeId);
+    setSelectedTraceEventId(replayEvent.id);
+    setSelectedArtifactId(replayEvent.artifacts?.[0]?.id);
+    setActiveInspectorTab("debug");
+  }
+
+  function inspectNode(nodeId: string) {
+    const event = findLatestEventForNode(trace, nodeId);
+
+    setInspectedNodeId(nodeId);
+    setSelectedTraceEventId(event?.id);
+    setSelectedArtifactId(event?.artifacts?.[0]?.id);
+    setActiveInspectorTab(event ? "debug" : "validation");
+  }
+
+  function inspectTraceEvent(event: TraceEvent) {
+    setSelectedTraceEventId(event.id);
+
+    if (runtimeWorkflow.nodes.some((node) => node.id === event.nodeId)) {
+      setInspectedNodeId(event.nodeId);
+      setActiveNodeId(event.nodeId);
+    }
+
+    setSelectedArtifactId(event.artifacts?.[0]?.id);
+    setActiveInspectorTab("debug");
+  }
+
+  function inspectGraphIssue(issue: GraphValidationIssue) {
+    if (issue.nodeId) {
+      setInspectedNodeId(issue.nodeId);
+      setActiveNodeId(issue.nodeId);
+    }
+
+    setActiveInspectorTab("validation");
   }
 
   function exportWorkflow() {
@@ -297,17 +429,39 @@ export function App() {
                 nodes={nodes}
                 edges={edges}
                 activeNodeId={activeNodeId}
+                inspectedNodeId={inspectedNodeId}
+                issueNodeIds={issueNodeIds}
+                issueEdgeIds={issueEdgeIds}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
+                onNodeSelect={inspectNode}
               />
             </section>
             <div className="right-rail">
-              <TracePanel status={status} events={trace} activeNodeId={activeNodeId} />
-              <McpPanel
+              <InspectorRail
+                activeTab={activeInspectorTab}
+                onTabChange={setActiveInspectorTab}
+                status={status}
+                events={trace}
+                activeNodeId={activeNodeId}
+                selectedTraceEventId={selectedTraceEventId}
+                inspectedNode={inspectedNode}
+                latestEvent={latestEvent}
+                artifacts={artifacts}
+                selectedArtifactId={selectedArtifactId}
+                costBreakdown={costBreakdown}
+                graphIssues={graphIssues}
                 importedServers={importedServers}
-                onImport={setImportedServers}
-                onCreateNodes={addImportedMcpNodes}
+                onEventSelect={inspectTraceEvent}
+                onReplayFailedStep={replayFailedStep}
+                onArtifactSelect={(artifactId) => {
+                  setSelectedArtifactId(artifactId);
+                  setActiveInspectorTab("artifacts");
+                }}
+                onIssueSelect={inspectGraphIssue}
+                onImportServers={setImportedServers}
+                onCreateMcpNodes={addImportedMcpNodes}
               />
             </div>
           </div>
@@ -315,6 +469,42 @@ export function App() {
       </div>
     </ReactFlowProvider>
   );
+}
+
+function findLatestEventForNode(trace: TraceEvent[], nodeId?: string) {
+  if (!nodeId) {
+    return undefined;
+  }
+
+  for (let index = trace.length - 1; index >= 0; index -= 1) {
+    if (trace[index].nodeId === nodeId) {
+      return trace[index];
+    }
+  }
+
+  return undefined;
+}
+
+function collectArtifacts(trace: TraceEvent[]): TraceArtifact[] {
+  return trace.flatMap((event) => {
+    if (event.artifacts && event.artifacts.length > 0) {
+      return event.artifacts;
+    }
+
+    if (event.artifact) {
+      return [
+        {
+          id: `${event.id}-legacy-artifact`,
+          name: `${event.nodeLabel} artifact`,
+          type: "stdout" as const,
+          uri: event.artifact,
+          content: event.artifact
+        }
+      ];
+    }
+
+    return [];
+  });
 }
 
 function titleCase(value: string) {
@@ -347,10 +537,34 @@ function createCancelledTraceEvent(node: AgentFlowNode, runId: string): TraceEve
     startedAt: new Date().toISOString(),
     durationMs: 0,
     provider: node.data.provider,
+    model: node.data.model,
     tokensIn: 0,
     tokensOut: 0,
     costUsd: 0,
     summary: "Run cancelled before this step completed.",
+    artifacts: [
+      {
+        id: `cancelled-${node.id}-stderr`,
+        name: `${node.data.label} cancellation`,
+        type: "stderr",
+        uri: `artifact://cancelled/${node.id}/stderr.log`,
+        content: "RUN_CANCELLED: The active local request was cancelled by the user."
+      }
+    ],
+    debug: {
+      prompt: node.data.promptTemplate ?? node.data.description,
+      toolCall: JSON.stringify(
+        {
+          provider: node.data.provider ?? "none",
+          model: node.data.model ?? "n/a",
+          kind: node.data.kind
+        },
+        null,
+        2
+      ),
+      result: "Run cancelled before this step completed.",
+      stderr: "RUN_CANCELLED: The active local request was cancelled by the user."
+    },
     error: {
       code: "RUN_CANCELLED",
       message: "The active local request was cancelled by the user."

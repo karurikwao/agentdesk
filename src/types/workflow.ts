@@ -15,6 +15,59 @@ export type RunStatus = "idle" | "running" | "paused" | "complete" | "failed";
 
 export type RunMode = "demo" | "ollama";
 
+export type TraceArtifactType = "json" | "markdown" | "screenshot" | "stdout" | "stderr";
+
+export type TraceArtifact = {
+  id: string;
+  name: string;
+  type: TraceArtifactType;
+  uri: string;
+  content: string;
+};
+
+export type TraceDebugPayload = {
+  prompt: string;
+  toolCall: string;
+  result: string;
+  stdout?: string;
+  stderr?: string;
+};
+
+export type CostBreakdownItem = {
+  id: string;
+  provider: ProviderKind | "none";
+  model: string;
+  events: number;
+  tokensIn: number;
+  tokensOut: number;
+  totalTokens: number;
+  costUsd: number;
+};
+
+export type GraphValidationIssue = {
+  id: string;
+  severity: "error" | "warning";
+  code:
+    | "cycle"
+    | "duplicate-node"
+    | "duplicate-edge"
+    | "missing-start"
+    | "missing-source"
+    | "missing-target"
+    | "self-loop"
+    | "missing-incoming"
+    | "missing-outgoing"
+    | "unreachable-node"
+    | "unreachable-output"
+    | "cannot-reach-output"
+    | "missing-output";
+  message: string;
+  nodeId?: string;
+  nodeIds?: string[];
+  edgeId?: string;
+  edgeIds?: string[];
+};
+
 export type AgentNodeData = {
   label: string;
   kind: AgentNodeKind;
@@ -56,11 +109,16 @@ export type TraceEvent = {
   startedAt: string;
   durationMs: number;
   provider?: ProviderKind;
+  model?: string;
   tokensIn: number;
   tokensOut: number;
   costUsd: number;
   summary: string;
   artifact?: string;
+  artifacts?: TraceArtifact[];
+  debug?: TraceDebugPayload;
+  replayOf?: string;
+  replayAttempt?: number;
   inputRef?: string;
   outputRef?: string;
   inputPreview?: string;

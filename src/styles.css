@@ -356,7 +356,7 @@ button:disabled {
 
 .workspace__body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 380px;
+  grid-template-columns: minmax(0, 1fr) clamp(360px, 27vw, 420px);
   gap: 14px;
   height: 100%;
   min-height: 0;
@@ -376,10 +376,58 @@ button:disabled {
 
 .right-rail {
   display: grid;
-  grid-template-rows: minmax(0, 1fr) minmax(240px, 0.78fr);
-  gap: 14px;
   min-height: 0;
   overflow: hidden;
+}
+
+.inspector-rail {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.inspector-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 8px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel-strong);
+}
+
+.inspector-tabs button {
+  min-height: 32px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.inspector-tabs button.is-active {
+  border-color: rgba(37, 99, 235, 0.32);
+  color: var(--blue-dark);
+  background: #dbeafe;
+}
+
+.inspector-body {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.inspector-body .trace-panel,
+.inspector-body .mcp-panel {
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .trace-panel,
@@ -489,11 +537,17 @@ button:disabled {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #ffffff;
+  cursor: pointer;
 }
 
-.trace-event.is-active {
+.trace-event.is-active,
+.trace-event.is-selected {
   border-color: rgba(37, 99, 235, 0.5);
   background: #eff6ff;
+}
+
+.trace-event.is-selected {
+  box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.16);
 }
 
 .trace-event__top {
@@ -568,6 +622,8 @@ button:disabled {
 }
 
 .trace-event__meta span,
+.artifact-chips span,
+.replay-chip,
 .agent-node__provider,
 .agent-node__kind {
   display: inline-flex;
@@ -579,6 +635,25 @@ button:disabled {
   background: #e0f2fe;
   font-size: 11px;
   font-weight: 800;
+}
+
+.artifact-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.replay-chip {
+  width: fit-content;
+  color: #5b21b6;
+  background: #ede9fe;
+}
+
+.trace-replay-button {
+  width: fit-content;
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 12px;
 }
 
 .artifact-link {
@@ -740,6 +815,247 @@ button:disabled {
   margin: 0 12px 12px;
 }
 
+.panel-shell {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.panel-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-header strong,
+.panel-header span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-header strong {
+  margin-top: 3px;
+  font-size: 17px;
+}
+
+.panel-header span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: left;
+  white-space: normal;
+}
+
+.debug-sections,
+.cost-list,
+.issue-list {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px;
+}
+
+.debug-block {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.debug-block > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--blue-dark);
+  font-size: 12px;
+}
+
+.debug-block--danger {
+  border-color: rgba(225, 29, 72, 0.22);
+  background: #fff1f2;
+}
+
+.debug-block--danger > div {
+  color: #9f1239;
+}
+
+.debug-block pre,
+.artifact-preview {
+  min-width: 0;
+  max-height: 220px;
+  overflow: auto;
+  margin: 0;
+  padding: 10px;
+  border-radius: 6px;
+  color: #dbeafe;
+  background: #0f172a;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 11px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.artifact-layout {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  min-height: 0;
+  overflow: hidden;
+  padding: 12px;
+}
+
+.artifact-list {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.artifact-list button {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 1fr);
+  gap: 2px 6px;
+  align-items: center;
+  min-width: 170px;
+  padding: 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: #ffffff;
+  text-align: left;
+}
+
+.artifact-list button.is-active {
+  border-color: rgba(37, 99, 235, 0.5);
+  background: #eff6ff;
+}
+
+.artifact-list span,
+.artifact-list small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.artifact-list span {
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.artifact-list small {
+  grid-column: 2;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.artifact-preview {
+  height: 100%;
+  max-height: none;
+}
+
+.artifact-preview--image {
+  display: grid;
+  place-items: center;
+  background: #f8fafc;
+}
+
+.artifact-preview--image img {
+  width: 100%;
+  max-height: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.artifact-preview--stderr {
+  color: #ffe4e6;
+  background: #881337;
+}
+
+.cost-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(86px, 0.8fr) minmax(118px, 1fr);
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.cost-row div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.cost-row strong,
+.cost-row span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cost-row strong {
+  font-size: 13px;
+}
+
+.cost-row span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.issue-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: #ffffff;
+  text-align: left;
+}
+
+.issue-card--error {
+  border-color: rgba(225, 29, 72, 0.28);
+  background: #fff1f2;
+}
+
+.issue-card--warning {
+  border-color: rgba(245, 158, 11, 0.26);
+  background: #fffbeb;
+}
+
+.issue-card span {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.issue-card small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
 .agent-node {
   width: 210px;
   padding: 12px;
@@ -762,6 +1078,22 @@ button:disabled {
     0 0 0 4px rgba(14, 165, 233, 0.18),
     0 0 0 8px rgba(124, 58, 237, 0.08),
     0 18px 34px rgba(15, 23, 42, 0.16);
+}
+
+.react-flow__node.is-inspected-node .agent-node {
+  border-color: rgba(124, 58, 237, 0.78);
+  box-shadow:
+    0 0 0 3px rgba(124, 58, 237, 0.14),
+    0 18px 34px rgba(15, 23, 42, 0.16);
+}
+
+.react-flow__node.has-graph-issue .agent-node {
+  border-color: rgba(225, 29, 72, 0.58);
+}
+
+.react-flow__edge.has-graph-issue .react-flow__edge-path {
+  stroke: var(--red);
+  stroke-width: 3;
 }
 
 .agent-node__top {
@@ -844,7 +1176,7 @@ button:disabled {
   }
 }
 
-@media (max-width: 1240px) {
+@media (max-width: 1320px) {
   .app-shell {
     grid-template-columns: 240px minmax(0, 1fr);
   }
@@ -860,8 +1192,8 @@ button:disabled {
   }
 
   .right-rail {
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
-    grid-template-rows: minmax(340px, auto);
+    height: min(620px, calc(100vh - 28px));
+    min-height: 480px;
     overflow: visible;
   }
 
@@ -882,7 +1214,8 @@ button:disabled {
   }
 
   .right-rail {
-    grid-template-columns: 1fr;
+    height: min(620px, calc(100vh - 28px));
+    min-height: 480px;
   }
 }
 
@@ -912,6 +1245,8 @@ button:disabled {
 
   .right-rail {
     grid-template-columns: 1fr;
+    height: min(620px, calc(100vh - 16px));
+    min-height: 460px;
   }
 
   .canvas-shell {
@@ -934,5 +1269,18 @@ button:disabled {
 
   .agent-node {
     width: 190px;
+  }
+
+  .inspector-tabs {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .cost-row {
+    grid-template-columns: 1fr;
+  }
+
+  .cost-row strong,
+  .cost-row span {
+    white-space: normal;
   }
 }

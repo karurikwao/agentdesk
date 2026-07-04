@@ -50,6 +50,10 @@ describe("ollama helpers", () => {
     expect(event.outputPreview).toBe("Local result");
     expect(event.tokensIn).toBe(10);
     expect(event.tokensOut).toBe(5);
+    expect(event.model).toBe("llama3.2");
+    expect(event.costUsd).toBe(0);
+    expect(event.debug?.toolCall).toContain("127.0.0.1:11434");
+    expect(event.artifacts?.map((artifact) => artifact.type)).toEqual(["json", "markdown"]);
   });
 
   it("returns a failed trace event when Ollama is unavailable", async () => {
@@ -67,5 +71,8 @@ describe("ollama helpers", () => {
     expect(event.status).toBe("failed");
     expect(event.error?.code).toBe("OLLAMA_UNAVAILABLE");
     expect(event.error?.message).toContain("connection refused");
+    expect(event.model).toBe("llama3.2");
+    expect(event.debug?.stderr).toContain("connection refused");
+    expect(event.artifacts?.[0]).toMatchObject({ type: "stderr" });
   });
 });

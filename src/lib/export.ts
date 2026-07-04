@@ -4,10 +4,10 @@ import { createPortableWorkflow, createTraceSummary } from "./schema";
 export function createWorkflowExport(workflow: AgentWorkflow, trace: TraceEvent[]) {
   return {
     schema: "agentdesk.workflow.v1",
-    appVersion: "0.1.0",
+    appVersion: "0.2.0",
     exportedAt: new Date().toISOString(),
     portableWorkflow: sanitize(createPortableWorkflow(workflow)),
-    traceSummary: createTraceSummary(trace),
+    traceSummary: sanitize(createTraceSummary(trace)),
     workflow: sanitize(workflow),
     trace: sanitize(trace)
   };

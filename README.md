@@ -1,12 +1,12 @@
 # AgentDesk
 
-**A local visual debugger for AI agent workflows across MCP tools, local models, and simulated cloud-provider steps.**
+**A local visual debugger for AI agent workflows across MCP metadata, local Ollama model nodes, and simulated cloud-provider steps.**
 
 [![CI](https://github.com/karurikwao/agentdesk/actions/workflows/ci.yml/badge.svg)](https://github.com/karurikwao/agentdesk/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-violet)](./LICENSE)
 [![Node 20+](https://img.shields.io/badge/node-20%2B-cyan)](./package.json)
 
-AgentDesk gives developers a graph canvas, replayable traces, MCP config import, safe redaction, local Ollama execution, simulated OpenAI/Anthropic-style steps, and portable workflow exports. It is built for the moment when you ask: what actually happened inside this agent run?
+AgentDesk gives developers a graph canvas, click-linked traces, node-level prompt/tool/result inspection, failed-step replay, artifact viewing, metadata-only MCP imports, safe redaction, local Ollama model-node execution, simulated OpenAI/Anthropic-style steps, and portable workflow exports. It is built for the moment when you ask: what actually happened inside this agent run?
 
 [Live demo](https://agentdesk-clf.pages.dev/) | [Cloudflare Pages](https://agentdesk-clf.pages.dev/) | [GitHub repo](https://github.com/karurikwao/agentdesk)
 
@@ -14,12 +14,15 @@ AgentDesk gives developers a graph canvas, replayable traces, MCP config import,
 
 ## Why Star AgentDesk?
 
-Star AgentDesk if you want a local-first, inspectable way to design and debug agent workflows before giving them real tool execution. It is not trying to be another giant workflow platform. The wedge is visual debugging: graph, trace, prompt/tool previews, simulated failure traces, cost/tokens, and exportable evidence in one place.
+Star AgentDesk if you want a local-first, inspectable way to design and debug agent workflows before connecting them to live tool execution. It is not trying to be another giant workflow platform. The wedge is visual debugging: graph, trace, prompt/tool/result previews, failed-step replay, artifact viewer, cost/tokens, graph health, and exportable evidence in one place.
 
 ## What Works Today
 
 - Visual workflow canvas with four launch demos: Repo QA Swarm, Local Research Agent, MCP Tool Router, and Failure Replay Lab.
-- Demo trace runner with active-node highlighting, graph validation, output previews, cost/token summaries, simulated failures, and whole-run replay.
+- Demo trace runner with active-node highlighting, trace-to-node selection, node-to-latest-event inspection, graph validation, cost/token summaries, simulated failures, whole-run replay, and failed-step replay.
+- Debugger inspector tabs for Trace, Debug, Artifacts, Costs, Validation, and MCP import.
+- Artifact viewer for JSON, markdown, simulated screenshot SVG previews, stdout, and stderr captured from trace events.
+- Graph health UI for cycles, missing endpoints, duplicate IDs, missing edges, unreachable outputs, and non-output dead ends.
 - Live local Ollama mode for `provider: "ollama"` model nodes only.
 - MCP config import for Claude-style `mcpServers`, VS Code-style `servers`, nested `mcp.servers`, remote server URLs, and single-server JSON.
 - MCP metadata readiness, risk flags, inferred tool hints, and env/header key names without secret values.
@@ -44,9 +47,10 @@ Open `http://127.0.0.1:5173`.
 
 1. Pick `Failure Replay Lab`.
 2. Click `Run demo trace`.
-3. Inspect the failed browser step in the trace panel.
-4. Paste an example MCP config from [`docs/examples`](./docs/examples).
-5. Export the `.agentdesk.json` trace.
+3. Click the failed `Browser Replay` trace event to highlight its node and inspect prompt/tool/result.
+4. Click `Replay failed step`, then open `Artifacts` and `Costs`.
+5. Paste an example MCP config from [`docs/examples`](./docs/examples).
+6. Export the `.agentdesk.json` trace.
 
 ### Optional Local Ollama Run
 
@@ -99,7 +103,7 @@ The CLI serves the built `dist` app from localhost with conservative static-serv
 
 - Approval-gated Node-side MCP runner using the official MCP SDK.
 - Real MCP initialize/list-tools discovery with timeout and process cleanup.
-- Shareable trace bundle with screenshots and stdout/stderr artifacts.
+- Shareable multi-file trace bundle with screenshots and stdout/stderr artifacts.
 - LangGraph/CrewAI export adapters.
 - Hosted docs site and launch video.
 
