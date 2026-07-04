@@ -41,7 +41,7 @@
 
 - Keep the current README screenshot or replace it with a 10-second GIF.
 - Confirm repo CI is passing on `main`.
-- Create `v0.6.0` GitHub release.
+- Create `v0.6.1` GitHub release.
 - Verify package dry run.
 - Publish npm package only after final name decision.
 - Seed five good first issues.

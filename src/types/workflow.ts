@@ -137,6 +137,16 @@ export type McpReadiness = {
   detail: string;
 };
 
+export type McpToolDescriptor = {
+  name: string;
+  title?: string;
+  description?: string;
+  inputSchema?: unknown;
+  outputSchema?: unknown;
+  annotations?: unknown;
+  execution?: unknown;
+};
+
 export type ImportedMcpServer = {
   id: string;
   type: "stdio" | "http" | "sse" | "unknown";
@@ -161,5 +171,7 @@ export type ImportedMcpServer = {
     status?: "available" | "failed";
     message?: string;
     serverInfo?: string;
+    protocolVersion?: string;
+    toolDescriptors?: McpToolDescriptor[];
   };
 };

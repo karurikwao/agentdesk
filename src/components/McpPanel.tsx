@@ -88,6 +88,12 @@ export function McpPanel({
               {server.capabilities.tools.length > 0 ? (
                 <small>Tools: {server.capabilities.tools.join(", ")}</small>
               ) : null}
+              {server.runtime?.protocolVersion ? (
+                <small>MCP {server.runtime.protocolVersion}</small>
+              ) : null}
+              {server.runtime?.toolDescriptors?.some((tool) => tool.outputSchema || tool.execution) ? (
+                <small>Schema/execution metadata captured for discovered tools.</small>
+              ) : null}
               {server.runtime?.message ? <small>{server.runtime.message}</small> : null}
             </div>
             <span title="Environment keys only, never secret values">

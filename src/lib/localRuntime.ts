@@ -1,4 +1,10 @@
-import type { AgentFlowNode, AgentWorkflow, ImportedMcpServer, TraceEvent } from "../types/workflow";
+import type {
+  AgentFlowNode,
+  AgentWorkflow,
+  ImportedMcpServer,
+  McpToolDescriptor,
+  TraceEvent
+} from "../types/workflow";
 
 export type LocalRuntimeStatus = {
   available: boolean;
@@ -13,9 +19,11 @@ export type McpDiscoveryResult = {
   status: "available" | "failed";
   message: string;
   tools: string[];
+  toolDescriptors?: McpToolDescriptor[];
   resources: string[];
   prompts: string[];
   serverInfo?: string;
+  protocolVersion?: string;
 };
 
 const runtimeHeaders = {

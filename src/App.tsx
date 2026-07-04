@@ -653,7 +653,9 @@ export function App() {
                 lastCheckedAt: new Date().toISOString(),
                 status: result.status,
                 message: result.message,
-                serverInfo: result.serverInfo
+                serverInfo: result.serverInfo,
+                protocolVersion: result.protocolVersion,
+                toolDescriptors: result.toolDescriptors
               }
             }
           : candidate

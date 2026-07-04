@@ -37,7 +37,7 @@ Use it when you need to explain or reproduce an agent run locally. Use a workflo
 - Graph health UI for cycles, missing endpoints, duplicate IDs, missing edges, unreachable outputs, and non-output dead ends.
 - Live local Ollama mode for `provider: "ollama"` model nodes.
 - Cloud BYOK mode for configured `provider: "openai"` and `provider: "anthropic"` model nodes, with API keys held in browser session state only.
-- Runtime mode through the packaged loopback CLI for local command nodes, MCP stdio initialize/list-tools/call-tool, and remote MCP HTTP probing.
+- Runtime mode through the packaged loopback CLI for local command nodes, MCP 2025-11-25 stdio initialize/paginated tools-list/call-tool, and remote Streamable HTTP probing.
 - Provider/model dropdown presets for OpenAI Responses and Anthropic Messages, plus editable base URL and model fields.
 - MCP config import for Claude-style `mcpServers`, VS Code-style `servers`, nested `mcp.servers`, remote server URLs, and single-server JSON.
 - MCP readiness, risk flags, inferred/live tool hints, and env/header key names without secret values.
@@ -106,7 +106,7 @@ node ./bin/agentdesk.mjs --port 5173
 4. Switch run mode to `Runtime`.
 5. Run workflows with configured `provider: "local"` command nodes, or import an MCP config and click `Discover` on an MCP server.
 
-Runtime mode uses loopback-only API routes, JSON-only requests, no shell by default, fixed timeouts, stdout/stderr caps, and redacted trace artifacts. MCP stdio servers are initialized through JSON-RPC, `tools/list` is captured as evidence, and `tools/call` is available when a node supplies `toolName` and optional `toolInputJson` in config. Remote MCP HTTP endpoints are probed only after explicit discovery.
+Runtime mode uses loopback-only API routes, JSON-only requests, no shell by default, fixed timeouts, stdout/stderr caps, and redacted trace artifacts. MCP stdio servers are initialized through JSON-RPC, paginated `tools/list` results are captured as evidence, and `tools/call` is available when a node supplies `toolName` and optional `toolInputJson` in config. AgentDesk negotiates MCP protocol version `2025-11-25`, preserves discovered tool descriptor metadata such as `outputSchema` and `execution`, and treats `isError: true` tool-call results as failed trace events. Remote MCP Streamable HTTP endpoints are probed only after explicit discovery.
 
 ## MCP Import Examples
 

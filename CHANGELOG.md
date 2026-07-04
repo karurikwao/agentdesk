@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.1 - MCP 2025-11-25 compatibility
+
+- Updated Runtime mode MCP negotiation to protocol version `2025-11-25`.
+- Added negotiated `MCP-Protocol-Version` headers for subsequent Streamable HTTP requests.
+- Added paginated `tools/list` collection for stdio and Streamable HTTP MCP servers.
+- Preserved discovered tool descriptor metadata, including `outputSchema`, `annotations`, and `execution`.
+- Marked MCP `tools/call` results with `isError: true` as failed runtime trace events.
+- Expanded package smoke coverage for 2025-11-25 stdio and HTTP MCP discovery/tool-call fixtures.
+
 ## 0.6.0 - Launch candidate
 
 - Added loopback Runtime mode through the packaged CLI for local command nodes and MCP stdio/HTTP discovery.

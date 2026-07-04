@@ -10,8 +10,8 @@ const here = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(here, "..");
 const distRoot = resolve(projectRoot, "dist");
 const launchRoot = process.cwd();
-const runtimeVersion = "0.6.0";
-const mcpProtocolVersion = "2025-06-18";
+const runtimeVersion = "0.6.1";
+const mcpProtocolVersion = "2025-11-25";
 const maxBodyBytes = 512 * 1024;
 const maxOutputBytes = 96 * 1024;
 const defaultTimeoutMs = 15000;
@@ -226,7 +226,7 @@ async function executeRuntimeNode(body) {
       toolInputJson: node.data.config?.toolInputJson
     });
 
-    if (result.status !== "available") {
+    if (result.status !== "available" || result.toolResult?.isError === true) {
       return createRuntimeTraceEvent({ workflow, node, body, started, status: "failed", result });
     }
 
@@ -336,7 +336,7 @@ async function discoverStdioMcp(serverId, server, body) {
   try {
     const initialized = await client.request("initialize", initializeParams());
     await client.notify("notifications/initialized", {});
-    const toolsResult = await client.request("tools/list", {});
+    const toolsResult = await listAllStdioMcpTools(client);
     const toolCall = await maybeCallMcpTool(client, body);
     return mcpDiscoveryFromResults(serverId, initialized, toolsResult, toolCall, client.stderr());
   } finally {
@@ -352,18 +352,27 @@ async function discoverHttpMcp(serverId, server, body) {
   }
 
   const headers = objectEnv(server.headers);
-  const initialized = await httpMcpRequest(endpoint, headers, undefined, 1, "initialize", initializeParams());
+  const initialized = await httpMcpRequest(
+    endpoint,
+    headers,
+    undefined,
+    mcpProtocolVersion,
+    1,
+    "initialize",
+    initializeParams()
+  );
   const sessionId = initialized.sessionId;
-  await httpMcpNotification(endpoint, headers, sessionId, "notifications/initialized", {});
-  const toolsResult = await httpMcpRequest(endpoint, headers, sessionId, 2, "tools/list", {});
+  const negotiatedProtocolVersion = stringValue(initialized.payload?.protocolVersion) || mcpProtocolVersion;
+  await httpMcpNotification(endpoint, headers, sessionId, negotiatedProtocolVersion, "notifications/initialized", {});
+  const toolsResult = await listAllHttpMcpTools(endpoint, headers, sessionId, negotiatedProtocolVersion);
   const toolCall = body.toolName
-    ? await httpMcpRequest(endpoint, headers, sessionId, 3, "tools/call", {
+    ? await httpMcpRequest(endpoint, headers, sessionId, negotiatedProtocolVersion, 1000, "tools/call", {
         name: stringValue(body.toolName),
         arguments: parseToolInput(body.toolInputJson)
       })
     : undefined;
 
-  return mcpDiscoveryFromResults(serverId, initialized.payload, toolsResult.payload, toolCall?.payload);
+  return mcpDiscoveryFromResults(serverId, initialized.payload, toolsResult, toolCall?.payload);
 }
 
 async function maybeCallMcpTool(client, body) {
@@ -377,6 +386,28 @@ async function maybeCallMcpTool(client, body) {
     name: toolName,
     arguments: parseToolInput(body.toolInputJson)
   });
+}
+
+async function listAllStdioMcpTools(client) {
+  const tools = [];
+  let nextCursor;
+
+  for (let page = 0; page < 20; page += 1) {
+    const result = await client.request("tools/list", nextCursor ? { cursor: nextCursor } : {});
+    if (Array.isArray(result?.tools)) {
+      tools.push(...result.tools);
+    }
+
+    nextCursor = stringValue(result?.nextCursor);
+    if (!nextCursor) {
+      return {
+        ...result,
+        tools
+      };
+    }
+  }
+
+  throw new Error("MCP tools/list pagination exceeded the AgentDesk 20-page safety limit.");
 }
 
 function createStdioRpcClient({ command, args, cwd, env, timeoutMs }) {
@@ -477,14 +508,44 @@ function handleRpcLine(line, pending) {
   }
 }
 
-async function httpMcpRequest(endpoint, headers, sessionId, id, method, params) {
+async function listAllHttpMcpTools(endpoint, headers, sessionId, protocolVersion) {
+  const tools = [];
+  let nextCursor;
+
+  for (let page = 0; page < 20; page += 1) {
+    const result = await httpMcpRequest(
+      endpoint,
+      headers,
+      sessionId,
+      protocolVersion,
+      page + 2,
+      "tools/list",
+      nextCursor ? { cursor: nextCursor } : {}
+    );
+    if (Array.isArray(result.payload?.tools)) {
+      tools.push(...result.payload.tools);
+    }
+
+    nextCursor = stringValue(result.payload?.nextCursor);
+    if (!nextCursor) {
+      return {
+        ...result.payload,
+        tools
+      };
+    }
+  }
+
+  throw new Error("Remote MCP tools/list pagination exceeded the AgentDesk 20-page safety limit.");
+}
+
+async function httpMcpRequest(endpoint, headers, sessionId, protocolVersion, id, method, params) {
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       ...headers,
       Accept: "application/json, text/event-stream",
       "Content-Type": "application/json",
-      "MCP-Protocol-Version": mcpProtocolVersion,
+      "MCP-Protocol-Version": protocolVersion,
       ...(sessionId ? { "Mcp-Session-Id": sessionId } : {})
     },
     body: JSON.stringify({ jsonrpc: "2.0", id, method, params }),
@@ -497,14 +558,14 @@ async function httpMcpRequest(endpoint, headers, sessionId, id, method, params) 
   };
 }
 
-async function httpMcpNotification(endpoint, headers, sessionId, method, params) {
+async function httpMcpNotification(endpoint, headers, sessionId, protocolVersion, method, params) {
   await fetch(endpoint, {
     method: "POST",
     headers: {
       ...headers,
       Accept: "application/json, text/event-stream",
       "Content-Type": "application/json",
-      "MCP-Protocol-Version": mcpProtocolVersion,
+      "MCP-Protocol-Version": protocolVersion,
       ...(sessionId ? { "Mcp-Session-Id": sessionId } : {})
     },
     body: JSON.stringify({ jsonrpc: "2.0", method, params }),
@@ -544,9 +605,10 @@ async function parseMcpHttpResponse(response, id) {
 }
 
 function mcpDiscoveryFromResults(serverId, initialized, toolsResult, toolCall, stderr = "") {
-  const tools = Array.isArray(toolsResult?.tools)
-    ? toolsResult.tools.map((tool) => String(tool.name ?? "")).filter(Boolean)
+  const toolDescriptors = Array.isArray(toolsResult?.tools)
+    ? toolsResult.tools.map(normalizeToolDescriptor).filter(Boolean)
     : [];
+  const tools = toolDescriptors.map((tool) => tool.name);
   const serverInfo = initialized?.serverInfo
     ? `${initialized.serverInfo.name ?? "server"} ${initialized.serverInfo.version ?? ""}`.trim()
     : undefined;
@@ -555,15 +617,35 @@ function mcpDiscoveryFromResults(serverId, initialized, toolsResult, toolCall, s
     serverId,
     status: "available",
     message: toolCall
-      ? `Discovered ${tools.length} tool(s) and called ${toolCall.name ?? "selected tool"}.`
+      ? toolCall.isError === true
+        ? `Discovered ${tools.length} tool(s), but the selected MCP tool reported an execution error.`
+        : `Discovered ${tools.length} tool(s) and called ${toolCall.name ?? "selected tool"}.`
       : `Discovered ${tools.length} MCP tool(s).`,
     tools,
+    toolDescriptors,
     resources: [],
     prompts: [],
     serverInfo,
+    protocolVersion: initialized?.protocolVersion,
     toolResult: toolCall,
     stderr: redactText(stderr)
   };
+}
+
+function normalizeToolDescriptor(tool) {
+  if (!tool || typeof tool !== "object" || !tool.name) {
+    return undefined;
+  }
+
+  return redactValue({
+    name: String(tool.name),
+    title: stringValue(tool.title),
+    description: stringValue(tool.description),
+    inputSchema: tool.inputSchema && typeof tool.inputSchema === "object" ? tool.inputSchema : undefined,
+    outputSchema: tool.outputSchema && typeof tool.outputSchema === "object" ? tool.outputSchema : undefined,
+    annotations: tool.annotations && typeof tool.annotations === "object" ? tool.annotations : undefined,
+    execution: tool.execution && typeof tool.execution === "object" ? tool.execution : undefined
+  });
 }
 
 function createRuntimeTraceEvent({ workflow, node, body, started, status, result }) {

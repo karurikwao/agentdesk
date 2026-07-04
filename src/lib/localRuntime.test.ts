@@ -122,4 +122,59 @@ describe("local runtime client", () => {
     });
     expect(result.message).toContain("packaged CLI");
   });
+
+  it("preserves MCP 2025-11-25 tool descriptor metadata", async () => {
+    const server: ImportedMcpServer = {
+      id: "browser",
+      type: "stdio",
+      command: "npx",
+      args: ["pkg"],
+      envKeys: [],
+      headerKeys: [],
+      riskFlags: [],
+      readiness: {
+        level: "review",
+        label: "Needs approval",
+        detail: "Review"
+      },
+      capabilities: {
+        tools: [],
+        resources: [],
+        prompts: [],
+        discovery: "requires-approval"
+      }
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          serverId: "browser",
+          status: "available",
+          message: "Discovered 1 MCP tool(s).",
+          tools: ["smoke_tool"],
+          toolDescriptors: [
+            {
+              name: "smoke_tool",
+              outputSchema: { type: "object" },
+              execution: { taskSupport: "optional" }
+            }
+          ],
+          resources: [],
+          prompts: [],
+          protocolVersion: "2025-11-25"
+        })
+      })
+    );
+
+    const result = await discoverMcpServer(server, "{}");
+
+    expect(result.protocolVersion).toBe("2025-11-25");
+    expect(result.toolDescriptors?.[0]).toMatchObject({
+      name: "smoke_tool",
+      outputSchema: { type: "object" },
+      execution: { taskSupport: "optional" }
+    });
+  });
 });

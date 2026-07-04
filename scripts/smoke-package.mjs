@@ -150,7 +150,13 @@ try {
   });
   const stdioPayload = await stdioDiscovery.json();
 
-  if (!stdioDiscovery.ok || stdioPayload.status !== "available" || !stdioPayload.tools?.includes("smoke_tool")) {
+  if (
+    !stdioDiscovery.ok ||
+    stdioPayload.status !== "available" ||
+    !stdioPayload.tools?.includes("smoke_tool") ||
+    stdioPayload.protocolVersion !== "2025-11-25" ||
+    stdioPayload.toolDescriptors?.[0]?.execution?.taskSupport !== "optional"
+  ) {
     throw new Error(`MCP stdio discovery smoke failed: HTTP ${stdioDiscovery.status}`);
   }
 
@@ -181,7 +187,13 @@ try {
   });
   const httpPayload = await httpDiscovery.json();
 
-  if (!httpDiscovery.ok || httpPayload.status !== "available" || !httpPayload.tools?.includes("smoke_tool")) {
+  if (
+    !httpDiscovery.ok ||
+    httpPayload.status !== "available" ||
+    !httpPayload.tools?.includes("smoke_tool") ||
+    httpPayload.protocolVersion !== "2025-11-25" ||
+    httpPayload.toolDescriptors?.[0]?.outputSchema?.type !== "object"
+  ) {
     throw new Error(`MCP HTTP discovery smoke failed: HTTP ${httpDiscovery.status}`);
   }
 
@@ -238,11 +250,11 @@ function createStdioMcpServerSource() {
     "function send(id, result) { process.stdout.write(JSON.stringify({ jsonrpc: '2.0', id, result }) + '\\n'); }",
     "function handle(message) {",
     "  if (message.method === 'initialize') {",
-    "    send(message.id, { protocolVersion: '2025-06-18', serverInfo: { name: 'stdio-smoke', version: '1.0.0' }, capabilities: { tools: {} } });",
+    "    send(message.id, { protocolVersion: '2025-11-25', serverInfo: { name: 'stdio-smoke', version: '1.0.0' }, capabilities: { tools: {} } });",
     "  } else if (message.method === 'tools/list') {",
-    "    send(message.id, { tools: [{ name: 'smoke_tool', description: 'Smoke tool', inputSchema: { type: 'object' } }] });",
+    "    send(message.id, { tools: [{ name: 'smoke_tool', title: 'Smoke Tool', description: 'Smoke tool', inputSchema: { type: 'object' }, outputSchema: { type: 'object', properties: { ok: { type: 'boolean' } }, required: ['ok'] }, execution: { taskSupport: 'optional' } }] });",
     "  } else if (message.method === 'tools/call') {",
-    "    send(message.id, { content: [{ type: 'text', text: 'stdio ok' }] });",
+    "    send(message.id, { content: [{ type: 'text', text: 'stdio ok' }], structuredContent: { ok: true } });",
     "  }",
     "}"
   ].join("\n");
@@ -265,13 +277,28 @@ function startHttpMcpServer(port) {
     const result =
       payload.method === "initialize"
         ? {
-            protocolVersion: "2025-06-18",
+            protocolVersion: "2025-11-25",
             serverInfo: { name: "http-smoke", version: "1.0.0" },
             capabilities: { tools: {} }
           }
         : payload.method === "tools/list"
-          ? { tools: [{ name: "smoke_tool", description: "Smoke tool", inputSchema: { type: "object" } }] }
-          : { content: [{ type: "text", text: "http ok" }] };
+          ? {
+              tools: [
+                {
+                  name: "smoke_tool",
+                  title: "Smoke Tool",
+                  description: "Smoke tool",
+                  inputSchema: { type: "object" },
+                  outputSchema: {
+                    type: "object",
+                    properties: { ok: { type: "boolean" } },
+                    required: ["ok"]
+                  },
+                  execution: { taskSupport: "optional" }
+                }
+              ]
+            }
+          : { content: [{ type: "text", text: "http ok" }], structuredContent: { ok: true } };
 
     response.writeHead(200, {
       "Content-Type": "application/json",
