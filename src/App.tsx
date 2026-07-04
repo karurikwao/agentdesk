@@ -1,13 +1,20 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { addEdge, ReactFlowProvider, useEdgesState, useNodesState, type Connection } from "@xyflow/react";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
 import { WorkflowCanvas } from "./components/WorkflowCanvas";
 import { InspectorRail, type InspectorTab } from "./components/InspectorRail";
 import { demoWorkflows } from "./data/workflows";
-import { createWorkflowExport, downloadJson } from "./lib/export";
+import { downloadJson } from "./lib/export";
 import { createCostBreakdown, createTraceEvent, getRunOrder, validateWorkflowGraph } from "./lib/runEngine";
-import { runOllamaNode } from "./lib/ollama";
+import { checkOllamaStatus, runOllamaNode } from "./lib/ollama";
+import { createReplaySessionExport, parseReplaySessionImport } from "./lib/replaySession";
+import {
+  collectBrowserCapabilities,
+  createReadinessReport,
+  defaultOllamaStatus,
+  type OllamaReadinessStatus
+} from "./lib/readiness";
 import type {
   AgentNodeData,
   AgentFlowNode,
@@ -25,9 +32,17 @@ const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve,
 
 export function App() {
   const [selectedWorkflowId, setSelectedWorkflowId] = useState(demoWorkflows[0].id);
+  const [importedWorkflow, setImportedWorkflow] = useState<AgentWorkflow | undefined>();
+  const availableWorkflows = useMemo(
+    () =>
+      importedWorkflow
+        ? [importedWorkflow, ...demoWorkflows.filter((workflow) => workflow.id !== importedWorkflow.id)]
+        : demoWorkflows,
+    [importedWorkflow]
+  );
   const selectedWorkflow = useMemo(
-    () => demoWorkflows.find((workflow) => workflow.id === selectedWorkflowId) ?? demoWorkflows[0],
-    [selectedWorkflowId]
+    () => availableWorkflows.find((workflow) => workflow.id === selectedWorkflowId) ?? availableWorkflows[0],
+    [availableWorkflows, selectedWorkflowId]
   );
   const [nodes, setNodes, onNodesChange] = useNodesState<AgentFlowNode>(selectedWorkflow.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(selectedWorkflow.edges);
@@ -40,9 +55,14 @@ export function App() {
   const [selectedArtifactId, setSelectedArtifactId] = useState<string | undefined>();
   const [activeInspectorTab, setActiveInspectorTab] = useState<InspectorTab>("trace");
   const [importedServers, setImportedServers] = useState<ImportedMcpServer[]>([]);
+  const [ollamaStatus, setOllamaStatus] = useState<OllamaReadinessStatus>(defaultOllamaStatus);
+  const [sessionNotice, setSessionNotice] = useState("No replay session imported yet.");
+  const [sessionError, setSessionError] = useState<string | undefined>();
   const runToken = useRef(0);
   const activeRunAbort = useRef<AbortController | null>(null);
   const currentRunId = useRef<string | undefined>();
+  const importInputRef = useRef<HTMLInputElement>(null);
+  const browserCapabilities = useMemo(() => collectBrowserCapabilities(), []);
 
   const runtimeWorkflow: AgentWorkflow = useMemo(
     () => ({
@@ -76,6 +96,18 @@ export function App() {
     [graphIssues]
   );
   const costBreakdown = useMemo(() => createCostBreakdown(trace), [trace]);
+  const readinessReport = useMemo(
+    () =>
+      createReadinessReport({
+        workflow: runtimeWorkflow,
+        graphIssues,
+        importedServers,
+        runMode,
+        capabilities: browserCapabilities,
+        ollamaStatus
+      }),
+    [browserCapabilities, graphIssues, importedServers, ollamaStatus, runMode, runtimeWorkflow]
+  );
   const selectedTraceEvent = useMemo(
     () => trace.find((event) => event.id === selectedTraceEventId),
     [selectedTraceEventId, trace]
@@ -103,7 +135,7 @@ export function App() {
   );
 
   function selectWorkflow(id: string) {
-    const workflow = demoWorkflows.find((candidate) => candidate.id === id);
+    const workflow = availableWorkflows.find((candidate) => candidate.id === id);
 
     if (!workflow) {
       return;
@@ -123,6 +155,12 @@ export function App() {
     setSelectedTraceEventId(undefined);
     setSelectedArtifactId(undefined);
     setActiveInspectorTab("trace");
+    setSessionNotice(
+      workflow.id === importedWorkflow?.id
+        ? "Imported replay session loaded."
+        : "Using a bundled AgentDesk demo workflow."
+    );
+    setSessionError(undefined);
   }
 
   function changeRunMode(mode: RunMode) {
@@ -138,6 +176,7 @@ export function App() {
     setSelectedArtifactId(undefined);
     setActiveInspectorTab("trace");
     setTrace([]);
+    setSessionError(undefined);
   }
 
   function addNode(kind: AgentNodeKind) {
@@ -353,7 +392,7 @@ export function App() {
 
     const replayEvent = createTraceEvent(runtimeWorkflow, event.nodeId, nodeIndex, `replay-${Date.now()}`, {
       replayOf: event,
-      replayAttempt: (event.replayAttempt ?? 0) + 1
+      replayAttempt: trace.filter((traceEvent) => traceEvent.replayOf === event.id).length + 1
     });
 
     setTrace((currentTrace) => [...currentTrace, replayEvent]);
@@ -396,14 +435,82 @@ export function App() {
   }
 
   function exportWorkflow() {
-    downloadJson(`${runtimeWorkflow.id}.agentdesk.json`, createWorkflowExport(runtimeWorkflow, trace));
+    downloadJson(
+      `${runtimeWorkflow.id}.agentdesk-session.json`,
+      createReplaySessionExport({
+        workflow: runtimeWorkflow,
+        trace,
+        graphIssues,
+        importedServers,
+        session: {
+          status,
+          runMode,
+          selectedTraceEventId,
+          selectedArtifactId,
+          inspectedNodeId,
+          activeInspectorTab
+        }
+      })
+    );
+  }
+
+  function openReplayImport() {
+    importInputRef.current?.click();
+  }
+
+  async function importReplaySessionFile(event: ChangeEvent<HTMLInputElement>) {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const imported = parseReplaySessionImport(text);
+      const importedStatus = imported.session.status === "running" ? "paused" : imported.session.status;
+
+      runToken.current += 1;
+      activeRunAbort.current?.abort();
+      activeRunAbort.current = null;
+      currentRunId.current = undefined;
+      setImportedWorkflow(imported.workflow);
+      setSelectedWorkflowId(imported.workflow.id);
+      setNodes(imported.workflow.nodes);
+      setEdges(imported.workflow.edges);
+      setTrace(imported.trace);
+      setStatus(importedStatus);
+      setRunMode(imported.session.runMode);
+      setActiveNodeId(imported.session.inspectedNodeId);
+      setInspectedNodeId(imported.session.inspectedNodeId);
+      setSelectedTraceEventId(imported.session.selectedTraceEventId);
+      setSelectedArtifactId(imported.session.selectedArtifactId);
+      setImportedServers(imported.importedServers);
+      setActiveInspectorTab(normalizeInspectorTab(imported.session.activeInspectorTab));
+      setSessionNotice(`Imported ${file.name} with ${imported.trace.length} trace event(s).`);
+      setSessionError(undefined);
+    } catch (error) {
+      setSessionError(error instanceof Error ? error.message : "Unable to import replay session.");
+      setSessionNotice(`Could not import ${file.name}.`);
+      setActiveInspectorTab("doctor");
+    } finally {
+      input.value = "";
+    }
+  }
+
+  async function probeOllama() {
+    const status = await checkOllamaStatus();
+
+    setOllamaStatus(status);
+    setActiveInspectorTab("doctor");
   }
 
   return (
     <ReactFlowProvider>
       <div className="app-shell">
         <Sidebar
-          workflows={demoWorkflows}
+          workflows={availableWorkflows}
           selectedWorkflowId={selectedWorkflowId}
           onSelectWorkflow={selectWorkflow}
           onAddNode={addNode}
@@ -422,6 +529,15 @@ export function App() {
             onStop={stopRun}
             onReplay={replayRun}
             onExport={exportWorkflow}
+            onImport={openReplayImport}
+          />
+          <input
+            ref={importInputRef}
+            data-testid="session-import-input"
+            className="visually-hidden"
+            type="file"
+            accept="application/json,.json,.agentdesk-json"
+            onChange={importReplaySessionFile}
           />
           <div className="workspace__body">
             <section className="canvas-shell" aria-label="Workflow canvas">
@@ -452,7 +568,11 @@ export function App() {
                 selectedArtifactId={selectedArtifactId}
                 costBreakdown={costBreakdown}
                 graphIssues={graphIssues}
+                readinessReport={readinessReport}
+                ollamaStatus={ollamaStatus}
                 importedServers={importedServers}
+                sessionNotice={sessionNotice}
+                sessionError={sessionError}
                 onEventSelect={inspectTraceEvent}
                 onReplayFailedStep={replayFailedStep}
                 onArtifactSelect={(artifactId) => {
@@ -462,6 +582,7 @@ export function App() {
                 onIssueSelect={inspectGraphIssue}
                 onImportServers={setImportedServers}
                 onCreateMcpNodes={addImportedMcpNodes}
+                onCheckOllama={probeOllama}
               />
             </div>
           </div>
@@ -469,6 +590,18 @@ export function App() {
       </div>
     </ReactFlowProvider>
   );
+}
+
+function normalizeInspectorTab(tab: string | undefined): InspectorTab {
+  return tab === "trace" ||
+    tab === "debug" ||
+    tab === "artifacts" ||
+    tab === "costs" ||
+    tab === "validation" ||
+    tab === "doctor" ||
+    tab === "mcp"
+    ? tab
+    : "debug";
 }
 
 function findLatestEventForNode(trace: TraceEvent[], nodeId?: string) {

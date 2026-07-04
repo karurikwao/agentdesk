@@ -8,6 +8,8 @@ import {
   FileText,
   Image as ImageIcon,
   ReceiptText,
+  RefreshCw,
+  ShieldCheck,
   TerminalSquare,
   Waypoints
 } from "lucide-react";
@@ -23,8 +25,9 @@ import type {
   TraceArtifact,
   TraceEvent
 } from "../types/workflow";
+import type { OllamaReadinessStatus, ReadinessCheck, ReadinessReport } from "../lib/readiness";
 
-export type InspectorTab = "trace" | "debug" | "artifacts" | "costs" | "validation" | "mcp";
+export type InspectorTab = "trace" | "debug" | "artifacts" | "costs" | "validation" | "doctor" | "mcp";
 
 type InspectorRailProps = {
   activeTab: InspectorTab;
@@ -39,13 +42,18 @@ type InspectorRailProps = {
   selectedArtifactId?: string;
   costBreakdown: CostBreakdownItem[];
   graphIssues: GraphValidationIssue[];
+  readinessReport: ReadinessReport;
+  ollamaStatus: OllamaReadinessStatus;
   importedServers: ImportedMcpServer[];
+  sessionNotice: string;
+  sessionError?: string;
   onEventSelect: (event: TraceEvent) => void;
   onReplayFailedStep: (event: TraceEvent) => void;
   onArtifactSelect: (artifactId: string) => void;
   onIssueSelect: (issue: GraphValidationIssue) => void;
   onImportServers: (servers: ImportedMcpServer[]) => void;
   onCreateMcpNodes: () => void;
+  onCheckOllama: () => void;
 };
 
 const tabs: Array<{ id: InspectorTab; label: string }> = [
@@ -54,6 +62,7 @@ const tabs: Array<{ id: InspectorTab; label: string }> = [
   { id: "artifacts", label: "Artifacts" },
   { id: "costs", label: "Costs" },
   { id: "validation", label: "Validation" },
+  { id: "doctor", label: "Doctor" },
   { id: "mcp", label: "MCP" }
 ];
 
@@ -70,13 +79,18 @@ export function InspectorRail({
   selectedArtifactId,
   costBreakdown,
   graphIssues,
+  readinessReport,
+  ollamaStatus,
   importedServers,
+  sessionNotice,
+  sessionError,
   onEventSelect,
   onReplayFailedStep,
   onArtifactSelect,
   onIssueSelect,
   onImportServers,
-  onCreateMcpNodes
+  onCreateMcpNodes,
+  onCheckOllama
 }: InspectorRailProps) {
   const selectedArtifact =
     artifacts.find((artifact) => artifact.id === selectedArtifactId) ?? artifacts[0];
@@ -121,6 +135,15 @@ export function InspectorRail({
         {activeTab === "validation" ? (
           <ValidationPanel issues={graphIssues} onIssueSelect={onIssueSelect} />
         ) : null}
+        {activeTab === "doctor" ? (
+          <DoctorPanel
+            report={readinessReport}
+            ollamaStatus={ollamaStatus}
+            sessionNotice={sessionNotice}
+            sessionError={sessionError}
+            onCheckOllama={onCheckOllama}
+          />
+        ) : null}
         {activeTab === "mcp" ? (
           <McpPanel
             importedServers={importedServers}
@@ -130,6 +153,67 @@ export function InspectorRail({
         ) : null}
       </div>
     </aside>
+  );
+}
+
+function DoctorPanel({
+  report,
+  ollamaStatus,
+  sessionNotice,
+  sessionError,
+  onCheckOllama
+}: {
+  report: ReadinessReport;
+  ollamaStatus: OllamaReadinessStatus;
+  sessionNotice: string;
+  sessionError?: string;
+  onCheckOllama: () => void;
+}) {
+  const grouped = groupChecks(report.checks);
+
+  return (
+    <section className="doctor-panel panel-shell" aria-label="Local readiness doctor">
+      <PanelHeader
+        eyebrow="Readiness"
+        title={`${report.summary.blocked} blocked / ${report.summary.review} review`}
+        detail={`${report.summary.ready} ready checks`}
+      />
+      <div className={`session-notice ${sessionError ? "session-notice--error" : ""}`}>
+        <ShieldCheck size={15} />
+        <span>{sessionError ?? sessionNotice}</span>
+      </div>
+      <div className="ollama-probe">
+        <div>
+          <strong>{ollamaStatus.label}</strong>
+          <span>{ollamaStatus.detail}</span>
+          {ollamaStatus.models.length > 0 ? (
+            <small>{ollamaStatus.models.slice(0, 4).join(", ")}</small>
+          ) : null}
+        </div>
+        <button type="button" className="secondary-button" onClick={onCheckOllama}>
+          <RefreshCw size={14} />
+          Check local Ollama
+        </button>
+      </div>
+      <div className="doctor-groups">
+        {Object.entries(grouped).map(([category, checks]) => (
+          <section className="doctor-group" key={category}>
+            <div className="doctor-group__title">{category}</div>
+            {checks.map((check) => (
+              <article className={`readiness-check readiness-check--${check.level}`} key={check.id}>
+                <div>
+                  <strong>{check.label}</strong>
+                  <span>{check.detail}</span>
+                  {check.remediation ? <small>{check.remediation}</small> : null}
+                  {check.hints.length > 0 ? <small>{check.hints.join(" ")}</small> : null}
+                </div>
+                <span>{check.level}</span>
+              </article>
+            ))}
+          </section>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -384,4 +468,11 @@ function formatJson(content: string) {
   } catch {
     return content;
   }
+}
+
+function groupChecks(checks: ReadinessCheck[]) {
+  return checks.reduce<Record<string, ReadinessCheck[]>>((groups, check) => {
+    groups[check.category] = [...(groups[check.category] ?? []), check];
+    return groups;
+  }, {});
 }

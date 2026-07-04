@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { demoWorkflows } from "../data/workflows";
-import { buildOllamaPrompt, runOllamaNode } from "./ollama";
+import { buildOllamaPrompt, checkOllamaStatus, runOllamaNode } from "./ollama";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -74,5 +74,44 @@ describe("ollama helpers", () => {
     expect(event.model).toBe("llama3.2");
     expect(event.debug?.stderr).toContain("connection refused");
     expect(event.artifacts?.[0]).toMatchObject({ type: "stderr" });
+  });
+
+  it("checks local Ollama tags for readiness and installed models", async () => {
+    const fetchMock = vi.fn(async () => new Response(
+      JSON.stringify({
+        models: [
+          { name: "llama3.2:latest" },
+          { model: "mistral:latest" }
+        ]
+      }),
+      { status: 200 }
+    ));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const status = await checkOllamaStatus();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://127.0.0.1:11434/api/tags",
+      expect.objectContaining({ method: "GET" })
+    );
+    expect(status).toMatchObject({
+      level: "ready",
+      models: ["llama3.2:latest", "mistral:latest"]
+    });
+  });
+
+  it("marks reachable Ollama with no models as needing review", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify({ models: [] }), { status: 200 }))
+    );
+
+    const status = await checkOllamaStatus();
+
+    expect(status).toMatchObject({
+      level: "review",
+      label: "No models",
+      models: []
+    });
   });
 });

@@ -21,7 +21,11 @@ describe("workflow export", () => {
             config: {
               command: "C:\\Users\\Ada\\bin\\server.exe",
               url: "postgres://user:pass@example.com/db?password=secret#token",
-              apiKey: "sk-1234567890abcdef"
+              apiKey: "sk-1234567890abcdef",
+              openaiApiKey: "sk-1234567890abcdef",
+              refreshToken: "refresh-token-value",
+              databaseUrl: "postgres://user:pass@example.com/db",
+              privateKey: "-----BEGIN PRIVATE KEY-----abc-----END PRIVATE KEY-----"
             }
           }
         }
@@ -55,7 +59,12 @@ describe("workflow export", () => {
             name: "Payload",
             type: "json",
             uri: "artifact://payload.json",
-            content: "postgres://user:pass@example.com/db?password=secret#token"
+            content: JSON.stringify({
+              password: "abc123",
+              xApiKey: "key-value",
+              databaseUrl: "postgres://user:pass@example.com/db?password=secret#token",
+              path: "C:\\Users\\Ada\\workspace\\trace.json"
+            })
           }
         ]
       }
@@ -80,5 +89,10 @@ describe("workflow export", () => {
     expect(serialized).not.toContain("abcdefghijklmnopqrstuvwxyz");
     expect(serialized).not.toContain("secret-token");
     expect(serialized).not.toContain("sk-1234567890abcdef");
+    expect(serialized).not.toContain("refresh-token-value");
+    expect(serialized).not.toContain("abc123");
+    expect(serialized).not.toContain("key-value");
+    expect(serialized).not.toContain("PRIVATE KEY");
+    expect(serialized).not.toContain("C:\\\\Users");
   });
 });

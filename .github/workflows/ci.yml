@@ -27,8 +27,30 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Verify
-        run: npm run verify
+      - name: Verify core
+        run: npm run verify:core
+
+      - name: Package smoke
+        run: npm run smoke:package
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser regression
+        run: npm run test:e2e
+
+      - name: Audit
+        run: npm audit --audit-level=moderate
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
 
       - name: Pack dry run
         run: npm pack --dry-run --ignore-scripts

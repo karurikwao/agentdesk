@@ -51,7 +51,15 @@ export function createTraceEvent(
           stderr: options.replayOf.debug.stderr
         }
       : generatedDebug;
-  const generatedArtifacts = createArtifacts(workflow, node, status, debug, isReplay);
+  const generatedArtifacts = createArtifacts(workflow, node, status, debug, isReplay).map((artifact) =>
+    isReplay
+      ? {
+          ...artifact,
+          id: `${artifact.id}-replay-${options.replayAttempt ?? 1}-result`,
+          name: `Replay result: ${artifact.name}`
+        }
+      : artifact
+  );
   const artifacts =
     isReplay && options.replayOf?.artifacts?.length
       ? [
@@ -364,7 +372,7 @@ function createDebugPayload(
       model: defaultModelForNode(node),
       kind: node.data.kind,
       action: node.data.kind === "tool" ? "metadata-only tool simulation" : "simulated step",
-      config: node.data.config ?? {}
+      config: redactDebugConfig(node.data.config ?? {})
     },
     null,
     2
@@ -381,6 +389,26 @@ function createDebugPayload(
     stdout: `${node.data.label}: start\n${node.data.label}: normalized context\n${node.data.label}: ${status}`,
     stderr: status === "failed" ? "DEMO_TOOL_TIMEOUT: simulated browser MCP timeout" : undefined
   };
+}
+
+function redactDebugConfig(config: Record<string, string | number | boolean>) {
+  return Object.fromEntries(
+    Object.entries(config).map(([key, value]) => [
+      key,
+      isSensitiveConfigKey(key) ? "[REDACTED]" : typeof value === "string" ? redactDebugString(value) : value
+    ])
+  );
+}
+
+function isSensitiveConfigKey(key: string) {
+  return /api[-_\s]?key|apikey|access[-_\s]?token|refresh[-_\s]?token|authorization|bearer|client[-_\s]?secret|cookie|jwt|password|private[-_\s]?key|secret|session|token|x[-_\s]?api[-_\s]?key|database[-_\s]?url|databaseurl/i.test(key);
+}
+
+function redactDebugString(value: string) {
+  return value
+    .replace(/(api[-_]?key|apikey|access[-_]?token|refresh[-_]?token|client[-_]?secret|private[-_]?key|secret|token|password|x-api-key|xApiKey|databaseUrl|database_url)(=|:)\s*[^,\s"']+/gi, "$1$2[REDACTED]")
+    .replace(/\bbearer\s+[A-Za-z0-9._-]{10,}\b/gi, "Bearer [REDACTED]")
+    .replace(/\b(gh[pousr]_[A-Za-z0-9_]{12,}|xox[baprs]-[A-Za-z0-9-]{10,}|sk-[A-Za-z0-9_-]{12,})\b/g, "[REDACTED]");
 }
 
 function createArtifacts(

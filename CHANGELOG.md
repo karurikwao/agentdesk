@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0 - 2026-07-04
+
+- Added replay-session export/import for graph, trace, artifacts, costs, validation issues, replay attempts, selected evidence, and imported MCP metadata.
+- Added the Doctor inspector tab for browser support, local/secure context, Ollama model readiness, MCP readiness, graph health, env-key config, and privacy checks.
+- Added Playwright browser regressions for run, trace click, node click, failed-step replay, artifact inspection, cost view, replay-session import/export, MCP import, and graph validation.
+- Added clean package smoke for packed install plus installed `agentdesk` CLI serve.
+- Hardened redaction for camelCase secret keys, JSON-string artifacts, validation issues, imported MCP metadata, and debug tool-call config.
+- Polished launch docs with a sharper README value prop, workflow-builder contrast, and Phase 5.5 launch gate checklist.
+
 ## 0.2.0 - 2026-07-04
 
 - Added tabbed debugger inspector for Trace, Debug, Artifacts, Costs, Validation, and MCP import.

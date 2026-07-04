@@ -49,6 +49,33 @@ describe("runEngine", () => {
     expect(replay.replayOf).toBe(failed.id);
     expect(replay.replayAttempt).toBe(1);
     expect(replay.summary).toMatch(/replayed/i);
+    expect(new Set(replay.artifacts?.map((artifact) => artifact.id)).size).toBe(replay.artifacts?.length);
+  });
+
+  it("redacts sensitive node config from debug tool calls", () => {
+    const workflow = {
+      ...demoWorkflows[0],
+      nodes: [
+        {
+          ...demoWorkflows[0].nodes[2],
+          data: {
+            ...demoWorkflows[0].nodes[2].data,
+            config: {
+              apiKey: "sk-1234567890abcdef",
+              refreshToken: "refresh-token-value",
+              safeMode: true
+            }
+          }
+        }
+      ],
+      edges: []
+    };
+    const event = createTraceEvent(workflow, "browser", 0, "run-1");
+
+    expect(event.debug?.toolCall).toContain("[REDACTED]");
+    expect(event.debug?.toolCall).toContain("safeMode");
+    expect(event.debug?.toolCall).not.toContain("sk-1234567890abcdef");
+    expect(event.debug?.toolCall).not.toContain("refresh-token-value");
   });
 
   it("rejects cyclic graphs", () => {

@@ -1,6 +1,8 @@
 import type { AgentFlowNode, AgentWorkflow, TraceEvent } from "../types/workflow";
+import type { OllamaReadinessStatus } from "./readiness";
 
 const OLLAMA_ENDPOINT = "http://127.0.0.1:11434/api/generate";
+const OLLAMA_TAGS_ENDPOINT = "http://127.0.0.1:11434/api/tags";
 
 type OllamaGenerateResponse = {
   response?: string;
@@ -9,6 +11,59 @@ type OllamaGenerateResponse = {
   eval_count?: number;
   total_duration?: number;
 };
+
+type OllamaTagsResponse = {
+  models?: Array<{
+    name?: string;
+    model?: string;
+  }>;
+};
+
+export async function checkOllamaStatus(
+  options: { signal?: AbortSignal } = {}
+): Promise<OllamaReadinessStatus> {
+  try {
+    const response = await fetch(OLLAMA_TAGS_ENDPOINT, {
+      method: "GET",
+      signal: options.signal
+    });
+
+    if (!response.ok) {
+      throw new Error(`Ollama returned HTTP ${response.status}`);
+    }
+
+    const payload = (await response.json()) as OllamaTagsResponse;
+    const models = (payload.models ?? [])
+      .map((model) => model.model ?? model.name)
+      .filter((model): model is string => Boolean(model))
+      .sort();
+
+    return {
+      level: models.length > 0 ? "ready" : "review",
+      label: models.length > 0 ? "Reachable" : "No models",
+      detail: models.length > 0
+        ? `Ollama is reachable with ${models.length} installed model(s).`
+        : "Ollama is reachable, but no installed models were returned.",
+      models,
+      checkedAt: new Date().toISOString()
+    };
+  } catch (error) {
+    const message =
+      error instanceof Error && error.name === "AbortError"
+        ? "The local Ollama readiness probe was cancelled."
+        : error instanceof Error
+          ? error.message
+          : "Unable to reach Ollama.";
+
+    return {
+      level: "blocked",
+      label: "Unavailable",
+      detail: `Ollama probe failed: ${message}`,
+      models: [],
+      checkedAt: new Date().toISOString()
+    };
+  }
+}
 
 export function buildOllamaPrompt(workflow: AgentWorkflow, node: AgentFlowNode) {
   const template =

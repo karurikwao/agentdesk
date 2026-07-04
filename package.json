@@ -1,6 +1,6 @@
 {
   "name": "agentdesk",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Local visual debugger for replaying and inspecting AI agent workflows.",
   "type": "module",
   "packageManager": "npm@11.13.0",
@@ -14,7 +14,11 @@
     "typecheck": "tsc -b --pretty false",
     "lint": "npm run typecheck",
     "test": "vitest run",
-    "verify": "npm run typecheck && npm test && npm run build && npm audit --audit-level=moderate",
+    "test:e2e": "npm run build && playwright test",
+    "test:e2e:install": "playwright install chromium",
+    "smoke:package": "node scripts/smoke-package.mjs",
+    "verify:core": "npm run typecheck && npm test && npm run build",
+    "verify": "npm run verify:core && npm audit --audit-level=moderate",
     "deploy:cloudflare": "npm run build && npx wrangler pages deploy dist --project-name agentdesk",
     "prepack": "npm run build",
     "prepare": "npm run build"
@@ -26,6 +30,7 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
     "@types/node": "^26.1.0",
@@ -44,6 +49,7 @@
     "docs/examples",
     "docs/LAUNCH_PLAN.md",
     "docs/PHASE_5_CHECKLIST.md",
+    "docs/PHASE_5_5_LAUNCH_GATE.md",
     "README.md",
     "LICENSE",
     "SECURITY.md",

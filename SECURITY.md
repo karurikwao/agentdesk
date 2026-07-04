@@ -11,5 +11,6 @@ Use GitHub private vulnerability reporting for secret handling, command executio
 - Ollama live mode only sends requests to `http://127.0.0.1:11434/api/generate`.
 - Imported MCP commands are metadata-only unless a future approval-gated runner is added.
 - Remote MCP URLs are parsed and redacted; they are not fetched automatically.
-- Exports redact common secret names, token formats, URLs, and private user path prefixes.
+- Replay-session exports redact common secret names, token formats, URLs, validation messages, imported MCP metadata, debug payloads, artifacts, and private user path prefixes.
+- Do not paste real secrets into node labels, prompts, Ollama responses, stdout/stderr, screenshots, artifacts, or invalid MCP JSON. React escapes text for XSS safety, but local UI display is not a secret vault.
 - New MCP/import/export changes must include redaction tests.

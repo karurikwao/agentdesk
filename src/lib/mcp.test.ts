@@ -140,6 +140,25 @@ describe("parseMcpConfig", () => {
     });
   });
 
+  it("blocks empty MCP server metadata with no command or URL", () => {
+    const [server] = parseMcpConfig(
+      JSON.stringify({
+        mcpServers: {
+          empty: {}
+        }
+      })
+    );
+
+    expect(server).toMatchObject({
+      id: "empty",
+      type: "unknown",
+      readiness: {
+        level: "blocked",
+        label: "Missing transport"
+      }
+    });
+  });
+
   it("filters dangerous keys and redacts local command paths", () => {
     const report = parseMcpConfigReport(
       JSON.stringify({
@@ -167,7 +186,7 @@ describe("parseMcpConfig", () => {
         servers: {
           risky: {
             command: "npx.cmd",
-            args: ["--api-key", "ghp_1234567890abcdef", "--token=plain-token"],
+            args: ["--api-key", "ghp_1234567890abcdef", "--databaseUrl=postgres://user:pass@example.com/db", "--privateKey", "abc123"],
             url: "https://user:pass@example.com/mcp/sk-1234567890abcdef#access_token=abc",
             headers: {
               Authorization: "Bearer abc"
@@ -187,7 +206,8 @@ describe("parseMcpConfig", () => {
     expect(server.url).toContain("#redacted");
     expect(server.riskFlags).toContain("executes-local-code");
     expect(scrubbedText).not.toContain("Bearer abc");
-    expect(scrubbedText).not.toContain("plain-token");
+    expect(scrubbedText).not.toContain("user:pass");
+    expect(scrubbedText).not.toContain("abc123");
   });
 
   it("parses checked-in MCP example fixtures", () => {

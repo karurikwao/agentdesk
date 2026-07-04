@@ -1,4 +1,4 @@
-import { Download, FileJson, Play, RotateCcw, Square } from "lucide-react";
+import { Download, Play, RotateCcw, Square, Upload } from "lucide-react";
 import type { RunMode, RunStatus } from "../types/workflow";
 
 type TopbarProps = {
@@ -14,6 +14,7 @@ type TopbarProps = {
   onStop: () => void;
   onReplay: () => void;
   onExport: () => void;
+  onImport: () => void;
 };
 
 export function Topbar({
@@ -28,7 +29,8 @@ export function Topbar({
   onRun,
   onStop,
   onReplay,
-  onExport
+  onExport,
+  onImport
 }: TopbarProps) {
   const isRunning = status === "running";
 
@@ -64,13 +66,31 @@ export function Topbar({
         <span className={`mode-badge mode-badge--${runMode}`}>
           {runMode === "demo" ? "Simulated trace / no execution" : "Live local / Ollama only"}
         </span>
-        <button type="button" className="icon-button" onClick={onReplay} title="Replay latest run">
+        <button
+          type="button"
+          className="icon-button"
+          onClick={onReplay}
+          title="Replay latest run"
+          aria-label="Replay latest run"
+        >
           <RotateCcw size={17} />
         </button>
-        <button type="button" className="icon-button" onClick={onExport} title="Export workflow JSON">
-          <FileJson size={17} />
+        <button
+          type="button"
+          className="icon-button"
+          onClick={onImport}
+          title="Import replay session"
+          aria-label="Import replay session"
+        >
+          <Upload size={17} />
         </button>
-        <button type="button" className="icon-button" onClick={onExport} title="Download trace">
+        <button
+          type="button"
+          className="icon-button"
+          onClick={onExport}
+          title="Export replay session"
+          aria-label="Export replay session"
+        >
           <Download size={17} />
         </button>
         <button

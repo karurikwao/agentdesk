@@ -177,6 +177,14 @@ function createReadiness({
     };
   }
 
+  if (type === "unknown") {
+    return {
+      level: "blocked",
+      label: "Missing transport",
+      detail: "MCP servers need either a stdio command or a remote URL before AgentDesk can assess them."
+    };
+  }
+
   if (type === "http" || type === "sse") {
     return {
       level: "review",
@@ -400,7 +408,7 @@ function redactObjectEntry(key: string, entry: unknown) {
 
 function redactPlainText(value: string) {
   return value
-    .replace(/(api[-_]?key|access[-_]?token|client[-_]?secret|secret|token|password|x-api-key)(=|:)\s*[^,\s"']+/gi, "$1$2[REDACTED]")
+    .replace(/(api[-_]?key|apikey|openaiApiKey|anthropicApiKey|access[-_]?token|refresh[-_]?token|client[-_]?secret|private[-_]?key|secret|token|password|x-api-key|xApiKey|databaseUrl|database_url)(=|:)\s*[^,\s"']+/gi, "$1$2[REDACTED]")
     .replace(/\bbearer\s+[A-Za-z0-9._-]{10,}\b/gi, "Bearer [REDACTED]")
     .replace(/\b(gh[pousr]_[A-Za-z0-9_]{12,})\b/g, "[REDACTED]")
     .replace(/\b(xox[baprs]-[A-Za-z0-9-]{10,})\b/g, "[REDACTED]")
@@ -425,7 +433,7 @@ function redactPathname(pathname: string) {
 }
 
 function containsSensitiveName(value: string) {
-  return /api[-_]?key|access[-_]?token|auth|authorization|bearer|client[-_]?secret|cookie|jwt|password|secret|session|token|x-api-key/i.test(
+  return /api[-_\s]?key|apikey|access[-_\s]?token|refresh[-_\s]?token|auth|authorization|bearer|client[-_\s]?secret|cookie|jwt|password|private[-_\s]?key|secret|session|token|x[-_\s]?api[-_\s]?key|xapikey|database[-_\s]?url|databaseurl/i.test(
     value
   );
 }

@@ -10,11 +10,11 @@ Phase 5 makes AgentDesk feel like a debugger, not just a workflow builder. Non-O
 - Show provider/model cost breakdowns with event and token totals.
 - View JSON, markdown, simulated screenshot SVG, stdout, and stderr artifacts.
 - Validate graph health for cycles, duplicate IDs, missing endpoints, missing edges, unreachable outputs, and non-output dead ends.
-- Export `0.2.0` workflows with sanitized `traceSummary`, debug payloads, artifacts, and full trace data.
+- Export `0.3.0` replay sessions with sanitized `traceSummary`, debug payloads, artifacts, validation issues, costs, and full trace data.
 
 ## Verification
 
 - `npm run verify` passes.
-- `npm pack --dry-run --ignore-scripts --json` passes for `agentdesk@0.2.0`.
+- `npm pack --dry-run --ignore-scripts --json` passes for `agentdesk@0.3.0`.
 - Browser smoke covered Failure Replay Lab, failed-step replay, Debug, Trace, Artifacts, Costs, and Validation.
 - 30/30 requested subagent verification passes were completed or addressed before release.
