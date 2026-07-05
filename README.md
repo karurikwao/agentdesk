@@ -13,11 +13,28 @@ AgentDesk answers the 10-second question: **what actually happened inside this a
 - Click from trace event to graph node and inspect prompt/tool/result/artifacts.
 - Export a redacted replay session you can share in an issue, PR, or handoff.
 
-[Live demo](https://agentdesk-clf.pages.dev/) | [Launch page](https://karurikwao.github.io/agentdesk/) | [GitHub repo](https://github.com/karurikwao/agentdesk)
+[Live demo](https://agentdesk-clf.pages.dev/) | [Launch page](https://karurikwao.github.io/agentdesk/) | [GitHub repo](https://github.com/karurikwao/agentdesk) | [Wiki](https://github.com/karurikwao/agentdesk/wiki)
 
 ![AgentDesk failure replay demo loop](./docs/assets/agentdesk-demo-loop.gif)
 
 Failed MCP step -> prompt/tool/result -> artifacts -> cost -> replay -> redacted evidence export.
+
+## Documentation Wiki
+
+The [AgentDesk Wiki](https://github.com/karurikwao/agentdesk/wiki) is the detailed operating manual for users and contributors. It is the best place to understand setup, run modes, MCP/runtime behavior, BYOK LLM configuration, exports, troubleshooting, security boundaries, and launch/contribution workflows.
+
+| Wiki page | Use it for |
+| --- | --- |
+| [Getting Started](https://github.com/karurikwao/agentdesk/wiki/Getting-Started) | Install paths, first run, and the 30-second failure replay demo. |
+| [Core Concepts](https://github.com/karurikwao/agentdesk/wiki/Core-Concepts) | Workflows, nodes, edges, traces, artifacts, costs, validation, and replay. |
+| [Run Modes](https://github.com/karurikwao/agentdesk/wiki/Run-Modes) | Demo, Ollama, Cloud BYOK, and Runtime mode behavior. |
+| [MCP and Runtime](https://github.com/karurikwao/agentdesk/wiki/MCP-and-Runtime) | MCP import, live discovery, local command nodes, official SDK adapter, and runtime safety boundaries. |
+| [LLM Configuration](https://github.com/karurikwao/agentdesk/wiki/LLM-Configuration) | OpenAI/Anthropic BYOK setup, model presets, and browser-direct caveats. |
+| [Replay Sessions and Exports](https://github.com/karurikwao/agentdesk/wiki/Replay-Sessions-and-Exports) | Replay-session JSON, trace bundle ZIP, redaction, and framework starter exports. |
+| [Troubleshooting](https://github.com/karurikwao/agentdesk/wiki/Troubleshooting) | Common local setup, Ollama, BYOK, MCP, and Runtime mode failures. |
+| [Security Model](https://github.com/karurikwao/agentdesk/wiki/Security-Model) | What AgentDesk redacts, what it does not promise, and how to handle secrets. |
+| [Contributing Guide](https://github.com/karurikwao/agentdesk/wiki/Contributing-Guide) | Repo workflow, verification commands, code areas, and contribution expectations. |
+| [Launch and Promotion](https://github.com/karurikwao/agentdesk/wiki/Launch-and-Promotion) | Launch positioning, assets, community threads, and promotion checklist. |
 
 ## See The Failure Replay In 30 Seconds
 
